@@ -1,12 +1,20 @@
 import { Users, LogIn, StickyNote, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardTitle,
+  CardHeader,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 
 // import { CreatePost } from "@/app/_components/create-post";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
+import { RecentLogin } from "./_components/recent-login";
+import { OverviewPost } from "./_components/overview";
 // import { api } from "@/trpc/server";
 
 export default async function Home() {
@@ -19,12 +27,12 @@ export default async function Home() {
   }
 
   return (
-    <main className="container min-h-screen pt-12">
+    <main className="container min-h-screen flex-1 space-y-4 p-8 pt-12">
       <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
         Dashboard
       </h2>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -79,6 +87,26 @@ export default async function Home() {
             <p className="text-xs text-muted-foreground">
               +2 satu jam terakhir
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Ringkasan Postingan Artikel</CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <OverviewPost />
+          </CardContent>
+        </Card>
+        <Card className="col-span-4 md:col-span-3">
+          <CardHeader>
+            <CardTitle>Aktivitas Akun</CardTitle>
+            <CardDescription>13 akun aktif bulan ini</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentLogin />
           </CardContent>
         </Card>
       </div>
