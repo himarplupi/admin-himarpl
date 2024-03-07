@@ -8,8 +8,16 @@ import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "@/env";
-import { db } from "@/server/db";
-import { createTable } from "@/server/db/schema";
+import {
+  db,
+  selectUsersByEmail,
+  isAccountFound,
+  insertAccount,
+  NewAccount,
+} from "@/server/db";
+import { createTable, users } from "@/server/db/schema";
+
+type NewUser = typeof users.$inferInsert;
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -25,8 +33,9 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
-  interface User {
+  interface User extends NewUser {
     role: "admin" | "member";
+    lastLoginAt: Date;
   }
 }
 
@@ -36,12 +45,58 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  secret: env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
+    signIn: async ({ profile, account }) => {
+      const email = profile?.email;
+
+      if (!account) return "/login?errorMsg=Account is not detected";
+      if (!email) return "/login?errorMsg=Email is not detected";
+
+      const users = await selectUsersByEmail(email);
+
+      if (users.length === 0)
+        return `/login?errorMsg=${email} is not registered`;
+
+      const user = users[0];
+
+      if (user?.role !== "admin") {
+        return `/login?errorMsg=${email} is not an admin`;
+      }
+
+      const accountFound = await isAccountFound(user.id);
+
+      if (!accountFound) {
+        console.log("Account not found, inserting...");
+        // Insert new account user if not found
+        const res = await insertAccount({
+          userId: user.id,
+          provider: account.provider,
+          type: account.type as NewAccount["type"],
+          providerAccountId: account.providerAccountId,
+          access_token: account.access_token,
+          refresh_token: account.refresh_token,
+          expires_at: account.expires_at,
+          scope: account.scope,
+          token_type: account.token_type,
+          id_token: account.id_token,
+          session_state: account.session_state,
+        });
+
+        if (!res) return "/login?errorMsg=Failed to insert account";
+      }
+
+      return true;
+    },
     session: ({ session, user }) => ({
       ...session,
       user: {
         ...session.user,
         id: user.id,
+        role: user.role,
       },
     }),
   },
@@ -52,6 +107,14 @@ export const authOptions: NextAuthOptions = {
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
   ],
+  events: {
+    async createUser(message) {
+      console.log("\ncreateUser", message);
+    },
+    async updateUser(message) {
+      console.log("\nupdateUser", message);
+    },
+  },
 };
 
 /**

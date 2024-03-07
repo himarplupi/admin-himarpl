@@ -23,7 +23,7 @@ export const createTable = pgTableCreator((name) => `himarpl_${name}`);
 export const postCategories = createTable(
   "post_category",
   {
-    id: varchar("id", { length: 255 })
+    id: varchar("id", { length: 36 })
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
@@ -50,7 +50,7 @@ export const postCategoryRelations = relations(postCategories, ({ many }) => ({
 export const postTags = createTable(
   "post_tag",
   {
-    id: varchar("id", { length: 255 })
+    id: varchar("id", { length: 36 })
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
@@ -77,7 +77,7 @@ export const postTagRelations = relations(postTags, ({ many }) => ({
 export const posts = createTable(
   "post",
   {
-    id: varchar("id", { length: 255 })
+    id: varchar("id", { length: 36 })
       .primaryKey()
       .$defaultFn(() => createId()),
     authorId: varchar("authorId", { length: 255 })
@@ -110,7 +110,7 @@ export const postRelations = relations(posts, ({ one, many }) => ({
 export const departmentTypeEnum = pgEnum("type", ["BE", "DP"]);
 
 export const departments = createTable("department", {
-  id: varchar("id", { length: 255 })
+  id: varchar("id", { length: 36 })
     .notNull()
     .primaryKey()
     .$defaultFn(() => createId()),
@@ -134,7 +134,7 @@ export const roleEnum = pgEnum("role", ["admin", "member"]);
 export const users = createTable(
   "user",
   {
-    id: varchar("id", { length: 255 })
+    id: varchar("id", { length: 36 })
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
@@ -147,16 +147,18 @@ export const users = createTable(
     username: varchar("username", { length: 16 }),
     bio: text("bio"),
     role: roleEnum("role").notNull().default("member"),
-    lastLoginAt: timestamp("lastLoginAt", { mode: "date" }).notNull(),
+    lastLoginAt: timestamp("lastLoginAt", { mode: "date" })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
     createdAt: timestamp("createdAt", { mode: "date" })
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updatedAt", { mode: "date" })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    departmentId: varchar("departmentId", { length: 255 })
-      .notNull()
-      .references(() => departments.id),
+    departmentId: varchar("departmentId", { length: 255 }).references(
+      () => departments.id,
+    ),
   },
   (user) => ({
     departmentIdIdx: index("user_departmentId_idx").on(user.departmentId),
