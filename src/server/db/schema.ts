@@ -20,6 +20,22 @@ import { createId } from "@/lib/cuid2";
  */
 export const createTable = pgTableCreator((name) => `himarpl_${name}`);
 
+export const socialMedia = createTable("social_media", {
+  id: varchar("id", { length: 36 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: varchar("userId", { length: 36 })
+    .notNull()
+    .references(() => users.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+});
+
+export const socialMediaRelations = relations(socialMedia, ({ one }) => ({
+  user: one(users, { fields: [socialMedia.userId], references: [users.id] }),
+}));
+
 export const postCategories = createTable(
   "post_category",
   {
@@ -80,7 +96,7 @@ export const posts = createTable(
     id: varchar("id", { length: 36 })
       .primaryKey()
       .$defaultFn(() => createId()),
-    authorId: varchar("authorId", { length: 255 })
+    authorId: varchar("authorId", { length: 36 })
       .notNull()
       .references(() => users.id),
     title: varchar("title", { length: 255 }).notNull(),
@@ -168,6 +184,7 @@ export const users = createTable(
 export const usersRelations = relations(users, ({ one, many }) => ({
   accounts: many(accounts),
   posts: many(posts),
+  socialMedia: many(socialMedia),
   department: one(departments, {
     fields: [users.departmentId],
     references: [departments.id],
@@ -177,7 +194,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 export const accounts = createTable(
   "account",
   {
-    userId: varchar("userId", { length: 255 })
+    userId: varchar("userId", { length: 36 })
       .notNull()
       .references(() => users.id),
     type: varchar("type", { length: 255 })
@@ -211,7 +228,7 @@ export const sessions = createTable(
     sessionToken: varchar("sessionToken", { length: 255 })
       .notNull()
       .primaryKey(),
-    userId: varchar("userId", { length: 255 })
+    userId: varchar("userId", { length: 36 })
       .notNull()
       .references(() => users.id),
     expires: timestamp("expires", { mode: "date" }).notNull(),
