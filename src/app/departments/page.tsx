@@ -6,8 +6,14 @@ import { DataTableDepartments } from "./_components/data-table";
 export default async function DepartmentsPage() {
   const session = await getServerAuthSession();
 
-  if (!session || session.user.role !== "admin") {
+  if (!session) {
     return redirect("/login");
+  }
+
+  const user = await api.user.getByEmail.query(session.user.email);
+
+  if (user?.role !== "admin") {
+    return redirect("https://himarpl.com");
   }
 
   const departments = await api.department.get.query();

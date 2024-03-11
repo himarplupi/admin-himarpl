@@ -8,16 +8,10 @@ import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "@/env";
-import {
-  db,
-  selectUsersByEmail,
-  isAccountFound,
-  insertAccount,
-  NewAccount,
-} from "@/server/db";
-import { createTable, users } from "@/server/db/schema";
-
-type NewUser = typeof users.$inferInsert;
+import { db, insertAccount } from "@/server/db";
+import type { NewAccount } from "@/server/db";
+import { createTable } from "@/server/db/schema";
+import { api } from "@/trpc/server";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -29,16 +23,17 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      role: "admin" | "member";
-    } & DefaultSession["user"];
+      name: string;
+      email: string;
+      image: string;
+      imageVerified: boolean | null;
+    };
   }
 
-  interface User extends NewUser {
+  interface User {
     role: "admin" | "member";
-    lastLoginAt: Date;
   }
 }
-
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -50,40 +45,33 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    signIn: async ({ profile, account }) => {
+    signIn: async ({ profile, account: authAccount }) => {
       const email = profile?.email;
 
-      if (!account) return "/login?errorMsg=Account is not detected";
+      if (!authAccount) return "/login?errorMsg=Account is not detected";
       if (!email) return "/login?errorMsg=Email is not detected";
 
-      const users = await selectUsersByEmail(email);
+      const user = await api.user.getByEmail.query(email);
 
-      if (users.length === 0)
-        return `/login?errorMsg=${email} is not registered`;
+      if (!user) return `/login?errorMsg=${email} is not registered`;
 
-      const user = users[0];
+      const account = await api.account.getByUserId.query(user.id);
 
-      if (user?.role !== "admin") {
-        return `/login?errorMsg=${email} is not an admin`;
-      }
-
-      const accountFound = await isAccountFound(user.id);
-
-      if (!accountFound) {
+      if (!account) {
         console.log("Account not found, inserting...");
         // Insert new account user if not found
         const res = await insertAccount({
           userId: user.id,
-          provider: account.provider,
-          type: account.type as NewAccount["type"],
-          providerAccountId: account.providerAccountId,
-          access_token: account.access_token,
-          refresh_token: account.refresh_token,
-          expires_at: account.expires_at,
-          scope: account.scope,
-          token_type: account.token_type,
-          id_token: account.id_token,
-          session_state: account.session_state,
+          provider: authAccount.provider,
+          type: authAccount.type as NewAccount["type"],
+          providerAccountId: authAccount.providerAccountId,
+          access_token: authAccount.access_token,
+          refresh_token: authAccount.refresh_token,
+          expires_at: authAccount.expires_at,
+          scope: authAccount.scope,
+          token_type: authAccount.token_type,
+          id_token: authAccount.id_token,
+          session_state: authAccount.session_state,
         });
 
         if (!res) return "/login?errorMsg=Failed to insert account";
@@ -91,14 +79,15 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-        role: user.role,
-      },
-    }),
+    session: ({ session, user }) => {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
+    },
   },
   adapter: DrizzleAdapter(db, createTable) as Adapter,
   providers: [

@@ -64,7 +64,7 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
           }
         })
         .map((department) => department.id),
-    [rowSelection],
+    [departments, rowSelection],
   );
 
   const table = useReactTable({

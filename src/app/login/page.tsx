@@ -19,9 +19,7 @@ export default async function LoginPage({
 }) {
   const session = await getServerAuthSession();
 
-  if (session?.user.role === "admin") {
-    return redirect("/");
-  }
+  if (session) return redirect(`/`);
 
   return (
     <main className="flex min-h-screen items-center justify-center">

@@ -1,5 +1,4 @@
 import { Users, LogIn, StickyNote, Activity } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardTitle,
@@ -8,21 +7,26 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { unstable_noStore as noStore } from "next/cache";
-import Link from "next/link";
 
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { RecentLogin } from "./_components/recent-login";
 import { OverviewPost } from "./_components/overview";
-// import { api } from "@/trpc/server";
+import { api } from "@/trpc/server";
 
 export default async function Home() {
   noStore();
 
   const session = await getServerAuthSession();
 
-  if (!session || session.user.role !== "admin") {
+  if (!session) {
     return redirect("/login");
+  }
+
+  const user = await api.user.getByEmail.query(session.user.email);
+
+  if (user?.role !== "admin") {
+    return redirect("https://himarpl.com");
   }
 
   return (

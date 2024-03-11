@@ -131,6 +131,8 @@ export const departments = createTable("department", {
     .primaryKey()
     .$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
+  acronym: varchar("acronym", { length: 32 }),
+  image: varchar("image", { length: 255 }),
   description: text("description"),
   type: departmentTypeEnum("type").notNull(),
   createdAt: timestamp("createdAt", { mode: "date" })
