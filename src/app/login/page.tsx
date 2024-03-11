@@ -19,7 +19,7 @@ export default async function LoginPage({
 }) {
   const session = await getServerAuthSession();
 
-  if (session) {
+  if (session?.user.role === "admin") {
     return redirect("/");
   }
 

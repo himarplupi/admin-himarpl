@@ -6,7 +6,7 @@ import { DataTableDepartments } from "./_components/data-table";
 export default async function DepartmentsPage() {
   const session = await getServerAuthSession();
 
-  if (!session) {
+  if (!session || session.user.role !== "admin") {
     return redirect("/login");
   }
 

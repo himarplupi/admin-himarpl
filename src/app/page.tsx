@@ -21,7 +21,7 @@ export default async function Home() {
 
   const session = await getServerAuthSession();
 
-  if (!session) {
+  if (!session || session.user.role !== "admin") {
     return redirect("/login");
   }
 
