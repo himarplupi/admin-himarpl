@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerAuthSession } from "@/server/auth";
-import { DataTableDemo } from "./_components/data-table";
+import { api } from "@/trpc/server";
+import { DataTableDepartments } from "./_components/data-table";
 
 export default async function DepartmentsPage() {
   const session = await getServerAuthSession();
@@ -9,9 +10,14 @@ export default async function DepartmentsPage() {
     return redirect("/login");
   }
 
+  const departments = await api.department.get.query();
+
   return (
-    <main className="container min-h-screen flex-1 space-y-4 p-8 pt-12">
-      <DataTableDemo />
+    <main className="container min-h-screen flex-1 p-8 pt-12">
+      <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+        Department
+      </h2>
+      <DataTableDepartments data={departments} />
     </main>
   );
 }

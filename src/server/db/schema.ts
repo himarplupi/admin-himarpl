@@ -253,3 +253,13 @@ export const verificationTokens = createTable(
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
+
+export type Department = typeof departments.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Account = typeof accounts.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type Post = typeof posts.$inferSelect;
+export type PostCategory = typeof postCategories.$inferSelect;
+export type PostTag = typeof postTags.$inferSelect;
+export type SocialMedia = typeof socialMedia.$inferSelect;

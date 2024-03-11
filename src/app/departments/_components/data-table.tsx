@@ -2,10 +2,6 @@
 
 import * as React from "react";
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,23 +9,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  MoreVertical,
-  XIcon,
-  Trash,
-} from "lucide-react";
-
+import { ChevronDown, XIcon, Trash, Rows } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -42,156 +27,49 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
+import { columns } from "./columns";
+import { CreateDepartment } from "./create-department";
+import { DeleteAlertDialog } from "./delete-alert";
+import type { Department } from "@/server/db/schema";
+import type {
+  VisibilityState,
+  ColumnFiltersState,
+  RowSelectionState,
+  SortingState,
+  TableMeta,
+  RowData,
+} from "@tanstack/table-core";
 
-const data: Department[] = [
-  {
-    id: "m5gr84i9",
-    name: "Marketing",
-    type: "dp",
-    description: "Marketing department",
-  },
-  {
-    id: "m5gr84if",
-    name: "Business",
-    type: "be",
-    description: "Business department",
-  },
-  {
-    id: "m5gr84i8",
-    name: "Sales",
-    type: "dp",
-    description: "Sales department",
-  },
-  {
-    id: "m5gr84i7",
-    name: "Engineering",
-    type: "be",
-    description: "Engineering department",
-  },
-  {
-    id: "m5gr84i6",
-    name: "Human Resources",
-    type: "dp",
-    description: "Human Resources department",
-  },
-  {
-    id: "m5gr84i5",
-    name: "Finance",
-    type: "be",
-    description: "Finance department",
-  },
-];
+declare module "@tanstack/table-core" {
+  interface TableMeta<TData extends RowData> {
+    deleteRows: (ids: string[]) => void;
+  }
+}
 
-export type Department = {
-  id: string;
-  name: string;
-  type: "be" | "dp";
-  description: string;
-};
-
-export const columns: ColumnDef<Department>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Type
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="uppercase">{row.getValue("type")}</div>,
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <p className="truncate">{row.getValue("description")}</p>
-    ),
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
-
-export function DataTableDemo() {
+export function DataTableDepartments({ data }: { data: Department[] }) {
+  const [departments, setDepartments] = React.useState<Department[]>(data);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const getRowIdSelection = React.useCallback(
+    () =>
+      departments
+        .filter((department, index) => {
+          if (rowSelection[index]) {
+            return department.id;
+          }
+        })
+        .map((department) => department.id),
+    [rowSelection],
+  );
 
   const table = useReactTable({
-    data,
     columns,
+    data: departments,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -206,24 +84,33 @@ export function DataTableDemo() {
       columnVisibility,
       rowSelection,
     },
+    meta: {
+      deleteRows: (ids: string[]) => {
+        setDepartments((prevData) =>
+          prevData.filter((department) => !ids.includes(department.id)),
+        );
+        table.resetRowSelection();
+      },
+    },
   });
-
-  React.useEffect(() => {
-    console.log(rowSelection);
-  }, [rowSelection]);
 
   return (
     <div className="w-full">
       {/* If table row not selected show filter columns */}
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
+          <CreateDepartment
+            onCreate={(newData) =>
+              setDepartments((prevData) => [...newData, ...prevData])
+            }
+          />
           <Input
             placeholder="Filter names..."
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
             }
-            className="max-w-sm"
+            className="ml-4 max-w-sm"
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -272,9 +159,14 @@ export function DataTableDemo() {
                 {table.getFilteredSelectedRowModel().rows.length} of{" "}
                 {table.getFilteredRowModel().rows.length} row(s) selected
               </div>
-              <Button variant="ghost" size="icon">
-                <Trash className="h-4 w-4" />
-              </Button>
+              <DeleteAlertDialog
+                onDelete={table.options.meta?.deleteRows}
+                departmentIds={getRowIdSelection()}
+              >
+                <Button variant="ghost" size="icon">
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </DeleteAlertDialog>
             </CardContent>
           </Card>
         </div>
