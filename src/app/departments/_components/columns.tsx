@@ -18,6 +18,11 @@ import {
   DeleteAlertTrigger,
   DeleteAlertWrapper,
 } from "./delete-alert";
+import {
+  EditDepartmentWrapper,
+  EditDepartmentTrigger,
+  EditDepartmentContent,
+} from "./edit-department";
 import type { Department } from "@/server/db/schema";
 
 export const columns: ColumnDef<Department>[] = [
@@ -48,7 +53,6 @@ export const columns: ColumnDef<Department>[] = [
     header: "Image",
     cell: ({ row }) => {
       const department = row.original;
-      console.log(department.image);
 
       return (
         <div className="relative h-14 w-14 overflow-hidden rounded-md">
@@ -124,35 +128,45 @@ export const columns: ColumnDef<Department>[] = [
 
       return (
         <DeleteAlertWrapper>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                className="gap-x-2"
-                onClick={() => navigator.clipboard.writeText(department.id)}
-              >
-                <Copy className="h-4 w-4" />
-                Copy department ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-x-2">
-                <Pencil className="h-4 w-4" />
-                Edit department
-              </DropdownMenuItem>
-              <DeleteAlertTrigger>
-                <DropdownMenuItem className="gap-x-2">
-                  <Trash className="h-4 w-4" />
-                  Delete department
+          <EditDepartmentWrapper>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem
+                  className="gap-x-2"
+                  onClick={() => navigator.clipboard.writeText(department.id)}
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy department ID
                 </DropdownMenuItem>
-              </DeleteAlertTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuSeparator />
+                <EditDepartmentTrigger>
+                  <DropdownMenuItem className="gap-x-2">
+                    <Pencil className="h-4 w-4" />
+                    Edit department
+                  </DropdownMenuItem>
+                </EditDepartmentTrigger>
+                <DeleteAlertTrigger>
+                  <DropdownMenuItem className="gap-x-2">
+                    <Trash className="h-4 w-4" />
+                    Delete department
+                  </DropdownMenuItem>
+                </DeleteAlertTrigger>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <EditDepartmentContent
+              department={department}
+              onEdit={(data) => table.options.meta?.updateRow(data)}
+            />
+          </EditDepartmentWrapper>
+
           <DeleteAlertContent
             departmentIds={[department.id]}
             onDelete={table.options.meta?.deleteRows}

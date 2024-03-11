@@ -43,6 +43,7 @@ import type {
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
     deleteRows: (ids: string[]) => void;
+    updateRow: (newData?: TData) => void;
   }
 }
 
@@ -90,6 +91,16 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
           prevData.filter((department) => !ids.includes(department.id)),
         );
         table.resetRowSelection();
+      },
+      updateRow: (newDepartment?: Department) => {
+        if (!newDepartment) return;
+        setDepartments((prevData) =>
+          prevData.map((prevDepartment) =>
+            prevDepartment.id === newDepartment.id
+              ? newDepartment
+              : prevDepartment,
+          ),
+        );
       },
     },
   });

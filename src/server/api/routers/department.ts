@@ -51,9 +51,11 @@ export const departmentRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        name: z.string(),
-        description: z.string(),
-        type: z.enum(["BE", "DP"]),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        acronym: z.string().optional(),
+        image: z.string().optional(),
+        type: z.enum(["BE", "DP"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -63,6 +65,8 @@ export const departmentRouter = createTRPCRouter({
           name: input.name,
           description: input.description,
           type: input.type,
+          acronym: input.acronym,
+          image: input.image,
           updatedAt: new Date(),
         })
         .where(eq(departments.id, input.id))
