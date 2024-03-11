@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreVertical, Trash, Copy, Pencil } from "lucide-react";
+import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +44,28 @@ export const columns: ColumnDef<Department>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "image",
+    header: "Image",
+    cell: ({ row }) => {
+      const department = row.original;
+      console.log(department.image);
+
+      return (
+        <div className="relative h-14 w-14 overflow-hidden rounded-md">
+          {department.image && (
+            <Image
+              src={department.image}
+              alt={department.name + " Image"}
+              fill
+              className="object-cover"
+            />
+          )}
+          {!department.image && `Image not found`}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "type",
     header: ({ column }) => {
       return (
@@ -56,6 +79,20 @@ export const columns: ColumnDef<Department>[] = [
       );
     },
     cell: ({ row }) => <div className="uppercase">{row.getValue("type")}</div>,
+  },
+  {
+    accessorKey: "acronym",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Acronym
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "name",

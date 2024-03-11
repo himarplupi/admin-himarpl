@@ -45,7 +45,9 @@ const createFormSchema = z.object({
     .min(4, {
       message: "Name must be more than 4 characters",
     }),
+  image: z.string(),
   description: z.string(),
+  acronym: z.string(),
   type: z.enum(["BE", "DP"]),
 });
 
@@ -64,6 +66,8 @@ export function CreateDepartment({
       name: "",
       description: "",
       type: "BE",
+      acronym: "",
+      image: "",
     },
   });
 
@@ -127,12 +131,13 @@ export function CreateDepartment({
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
+                        <FormLabel>Nama Departemen</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -140,12 +145,41 @@ export function CreateDepartment({
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="acronym"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Akronim Departemen</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Link Gambar</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Deskripsi Departemen</FormLabel>
                         <FormControl>
                           <Textarea className="min-h-16" {...field} />
                         </FormControl>

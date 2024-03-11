@@ -13,6 +13,8 @@ export const departmentRouter = createTRPCRouter({
       z.object({
         name: z.string(),
         description: z.string(),
+        acronym: z.string(),
+        image: z.string(),
         type: z.enum(["BE", "DP"]),
       }),
     )
@@ -23,6 +25,8 @@ export const departmentRouter = createTRPCRouter({
           name: input.name,
           description: input.description,
           type: input.type,
+          acronym: input.acronym,
+          image: input.image,
           updatedAt: new Date(),
         })
         .returning();
