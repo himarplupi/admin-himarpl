@@ -1,4 +1,4 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import {
   getServerSession,
   type DefaultSession,
@@ -6,12 +6,9 @@ import {
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
-
-import { env } from "@/env";
-import { db, insertAccount } from "@/server/db";
-import type { NewAccount } from "@/server/db";
-import { createTable } from "@/server/db/schema";
+import { db } from "@/server/db";
 import { api } from "@/trpc/server";
+import { env } from "@/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -27,7 +24,7 @@ declare module "next-auth" {
       email: string;
       image: string;
       imageVerified: boolean | null;
-    };
+    } & DefaultSession["user"];
   }
 
   interface User {
@@ -60,18 +57,20 @@ export const authOptions: NextAuthOptions = {
       if (!account) {
         console.log("Account not found, inserting...");
         // Insert new account user if not found
-        const res = await insertAccount({
-          userId: user.id,
-          provider: authAccount.provider,
-          type: authAccount.type as NewAccount["type"],
-          providerAccountId: authAccount.providerAccountId,
-          access_token: authAccount.access_token,
-          refresh_token: authAccount.refresh_token,
-          expires_at: authAccount.expires_at,
-          scope: authAccount.scope,
-          token_type: authAccount.token_type,
-          id_token: authAccount.id_token,
-          session_state: authAccount.session_state,
+        const res = await db.account.create({
+          data: {
+            userId: user.id,
+            provider: authAccount.provider,
+            type: authAccount.type,
+            providerAccountId: authAccount.providerAccountId,
+            access_token: authAccount.access_token,
+            refresh_token: authAccount.refresh_token,
+            expires_at: authAccount.expires_at,
+            scope: authAccount.scope,
+            token_type: authAccount.token_type,
+            id_token: authAccount.id_token,
+            session_state: authAccount.session_state,
+          },
         });
 
         if (!res) return "/login?errorMsg=Failed to insert account";
@@ -89,21 +88,13 @@ export const authOptions: NextAuthOptions = {
       };
     },
   },
-  adapter: DrizzleAdapter(db, createTable) as Adapter,
+  adapter: PrismaAdapter(db) as Adapter,
   providers: [
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
   ],
-  events: {
-    async createUser(message) {
-      console.log("\ncreateUser", message);
-    },
-    async updateUser(message) {
-      console.log("\nupdateUser", message);
-    },
-  },
 };
 
 /**

@@ -1,12 +1,9 @@
 import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { departments } from "@/server/db/schema";
-import { eq, inArray } from "drizzle-orm";
 
 export const departmentRouter = createTRPCRouter({
   get: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.query.departments.findMany();
+    return ctx.db.department.findMany();
   }),
   post: protectedProcedure
     .input(
@@ -19,33 +16,30 @@ export const departmentRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db
-        .insert(departments)
-        .values({
+      return await ctx.db.department.create({
+        data: {
           name: input.name,
           description: input.description,
           type: input.type,
           acronym: input.acronym,
           image: input.image,
-          updatedAt: new Date(),
-        })
-        .returning();
+        },
+      });
     }),
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db
-        .delete(departments)
-        .where(eq(departments.id, input))
-        .returning({ deletedId: departments.id });
+      return await ctx.db.department.delete({
+        where: { id: input },
+        select: { id: true },
+      });
     }),
   deleteMany: protectedProcedure
     .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db
-        .delete(departments)
-        .where(inArray(departments.id, input))
-        .returning({ deletedId: departments.id });
+      return await ctx.db.department.deleteMany({
+        where: { id: { in: input } },
+      });
     }),
   put: protectedProcedure
     .input(
@@ -59,17 +53,15 @@ export const departmentRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db
-        .update(departments)
-        .set({
+      return await ctx.db.department.update({
+        where: { id: input.id },
+        data: {
           name: input.name,
           description: input.description,
           type: input.type,
           acronym: input.acronym,
           image: input.image,
-          updatedAt: new Date(),
-        })
-        .where(eq(departments.id, input.id))
-        .returning();
+        },
+      });
     }),
 });
