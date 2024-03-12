@@ -5,6 +5,8 @@ import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { NavBar } from "./_components/navbar";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -63,7 +65,7 @@ export const metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -77,9 +79,14 @@ export default function RootLayout({
           fontSerif.variable,
         )}
       >
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <ScrollArea className="h-screen">
+          <TRPCReactProvider>
+            <NavBar />
+            {children}
+          </TRPCReactProvider>
 
-        <Toaster />
+          <Toaster />
+        </ScrollArea>
       </body>
     </html>
   );

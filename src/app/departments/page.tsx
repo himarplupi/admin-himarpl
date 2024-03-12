@@ -12,7 +12,7 @@ export default async function DepartmentsPage() {
   const departments = await api.department.get.query();
 
   return (
-    <main className="container min-h-screen flex-1 p-8 pt-12">
+    <main className="container min-h-screen flex-1 p-8 pt-20">
       <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
         Department
       </h2>
