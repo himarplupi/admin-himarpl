@@ -12,22 +12,14 @@ import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { RecentLogin } from "./_components/recent-login";
 import { OverviewPost } from "./_components/overview";
-import { api } from "@/trpc/server";
 
 export default async function Home() {
   noStore();
 
   const session = await getServerAuthSession();
 
-  if (!session) {
-    return redirect("/login");
-  }
-
-  const user = await api.user.getByEmail.query(session.user.email);
-
-  if (user?.role !== "admin") {
-    return redirect("https://himarpl.com");
-  }
+  if (!session) return redirect("/login");
+  if (session.user.role !== "admin") return redirect("https://himarpl.com");
 
   return (
     <main className="container min-h-screen flex-1 space-y-4 p-8 pt-12">

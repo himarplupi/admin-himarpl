@@ -20,10 +20,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      name: string;
-      email: string;
-      image: string;
-      imageVerified: boolean | null;
+      role: "admin" | "member";
     } & DefaultSession["user"];
   }
 
@@ -50,7 +47,13 @@ export const authOptions: NextAuthOptions = {
 
       const user = await api.user.getByEmail.query(email);
 
-      if (!user) return `/login?errorMsg=${email} is not registered`;
+      if (!user) {
+        return `/login?errorMsg=Account with email ${email} is not registered`;
+      }
+
+      if (user.role !== "admin") {
+        return "/login?errorMsg=You are not an admin";
+      }
 
       const account = await api.account.getByUserId.query(user.id);
 
@@ -86,6 +89,7 @@ export const authOptions: NextAuthOptions = {
         user: {
           ...session.user,
           id: user.id,
+          role: user.role,
         },
       };
     },
