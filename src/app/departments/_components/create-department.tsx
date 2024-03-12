@@ -34,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import type { Department } from "@/server/db/schema";
+import type { Department } from "@prisma/client";
 
 const createFormSchema = z.object({
   name: z
@@ -56,7 +56,7 @@ type CreateFormSchema = z.infer<typeof createFormSchema>;
 export function CreateDepartment({
   onCreate,
 }: {
-  onCreate: (data: Department[]) => void;
+  onCreate: (data: Department) => void;
 }) {
   const departmentMutation = api.department.post.useMutation();
   const [open, setOpen] = useState(false);

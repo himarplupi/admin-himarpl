@@ -34,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import type { Department } from "@/server/db/schema";
+import type { Department } from "@prisma/client";
 
 const editFormSchema = z.object({
   name: z
@@ -133,13 +133,13 @@ export function EditDepartmentContent({
     });
 
     await mutationPromise.then((data) => {
-      onEdit(data[0]);
+      onEdit(data);
       form.reset({
-        name: data[0]?.name,
-        description: data[0]?.description ?? "",
-        type: data[0]?.type,
-        acronym: data[0]?.acronym ?? "",
-        image: data[0]?.image ?? "",
+        name: data.name,
+        description: data.description ?? "",
+        type: data.type,
+        acronym: data.acronym ?? "",
+        image: data.image ?? "",
       });
     });
   };

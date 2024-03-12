@@ -23,7 +23,7 @@ import {
   EditDepartmentTrigger,
   EditDepartmentContent,
 } from "./edit-department";
-import type { Department } from "@/server/db/schema";
+import type { Department } from "@prisma/client";
 
 export const columns: ColumnDef<Department>[] = [
   {

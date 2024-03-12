@@ -30,13 +30,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { columns } from "./columns";
 import { CreateDepartment } from "./create-department";
 import { DeleteAlertDialog } from "./delete-alert";
-import type { Department } from "@/server/db/schema";
+import type { Department } from "@prisma/client";
 import type {
   VisibilityState,
   ColumnFiltersState,
   RowSelectionState,
   SortingState,
-  TableMeta,
   RowData,
 } from "@tanstack/table-core";
 
@@ -112,7 +111,7 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
         <div className="flex items-center py-4">
           <CreateDepartment
             onCreate={(newData) =>
-              setDepartments((prevData) => [...newData, ...prevData])
+              setDepartments((prevData) => [...prevData, newData])
             }
           />
           <Input
