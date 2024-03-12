@@ -21,17 +21,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { NavSheet } from "./nav-sheet";
 import type { Session } from "next-auth";
+import { abbreviation } from "@/lib/utils";
 
 const hideNavbarOnRoutes = ["/login"];
 
 export function NavDropdown({ session }: { session: Session | null }) {
   const router = useRouter();
   const pathname = usePathname();
-  const avatarFallback = session?.user.name
-    ?.split(" ")
-    .map((x) => x[0])
-    .join("")
-    .substring(0, 2);
 
   return (
     !hideNavbarOnRoutes.includes(pathname) && (
@@ -79,7 +75,9 @@ export function NavDropdown({ session }: { session: Session | null }) {
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer">
                   <AvatarImage src={session?.user.image ?? ""} />
-                  <AvatarFallback>{avatarFallback}</AvatarFallback>
+                  <AvatarFallback>
+                    {abbreviation(session?.user.name)}
+                  </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

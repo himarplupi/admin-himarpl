@@ -6,7 +6,7 @@ import {
 } from "@/server/api/trpc";
 
 export const userRouter = createTRPCRouter({
-  getMany: publicProcedure.query(({ ctx }) => {
+  getMany: protectedProcedure.query(({ ctx }) => {
     return ctx.db.user.findMany();
   }),
   getById: publicProcedure.input(z.string()).query(({ ctx, input }) => {
@@ -21,6 +21,52 @@ export const userRouter = createTRPCRouter({
       return await ctx.db.user.update({
         where: { id: input },
         data: { lastLoginAt: new Date() },
+      });
+    }),
+  deleteMany: protectedProcedure
+    .input(z.array(z.string()))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.user.deleteMany({
+        where: { id: { in: input } },
+      });
+    }),
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        email: z.string().email(),
+        image: z.string(),
+        role: z.enum(["admin", "member"]),
+        departmentId: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.user.create({
+        data: input,
+      });
+    }),
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        email: z.string().email().optional(),
+        image: z.string().optional(),
+        role: z.enum(["admin", "member"]).optional(),
+        departmentId: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log(input);
+      return await ctx.db.user.update({
+        where: { id: input.id },
+        data: {
+          name: input.name,
+          email: input.email,
+          image: input.image,
+          role: input.role,
+          departmentId: input.departmentId,
+        },
       });
     }),
 });

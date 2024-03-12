@@ -28,9 +28,9 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { columns } from "./columns";
-import { CreateDepartment } from "./create-department";
-import { DeleteAlertDialog } from "./delete-alert";
-import type { Department } from "@prisma/client";
+import { UserCreateDialog } from "./user-create-dialog";
+import { UserDeleteAlertDialog } from "./user-delete-alert";
+import type { User } from "@prisma/client";
 import type {
   VisibilityState,
   ColumnFiltersState,
@@ -46,8 +46,8 @@ declare module "@tanstack/table-core" {
   }
 }
 
-export function DataTableDepartments({ data }: { data: Department[] }) {
-  const [departments, setDepartments] = React.useState<Department[]>(data);
+export function DataTableUsers({ data }: { data: User[] }) {
+  const [users, setUsers] = React.useState<User[]>(data);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -57,19 +57,19 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const getRowIdSelection = React.useCallback(
     () =>
-      departments
+      users
         .filter((department, index) => {
           if (rowSelection[index]) {
             return department.id;
           }
         })
         .map((department) => department.id),
-    [departments, rowSelection],
+    [users, rowSelection],
   );
 
   const table = useReactTable({
     columns,
-    data: departments,
+    data: users,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -86,18 +86,16 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
     },
     meta: {
       deleteRows: (ids: string[]) => {
-        setDepartments((prevData) =>
-          prevData.filter((department) => !ids.includes(department.id)),
+        setUsers((prevData) =>
+          prevData.filter((user) => !ids.includes(user.id)),
         );
         table.resetRowSelection();
       },
-      updateRow: (newDepartment?: Department) => {
-        if (!newDepartment) return;
-        setDepartments((prevData) =>
-          prevData.map((prevDepartment) =>
-            prevDepartment.id === newDepartment.id
-              ? newDepartment
-              : prevDepartment,
+      updateRow: (newUser?: User) => {
+        if (!newUser) return;
+        setUsers((prevData) =>
+          prevData.map((prevUser) =>
+            prevUser.id === newUser.id ? newUser : prevUser,
           ),
         );
       },
@@ -109,9 +107,9 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
       {/* If table row not selected show filter columns */}
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
-          <CreateDepartment
+          <UserCreateDialog
             onCreate={(newData) =>
-              setDepartments((prevData) => [...prevData, newData])
+              setUsers((prevData) => [...prevData, newData])
             }
           />
           <Input
@@ -169,14 +167,14 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
                 {table.getFilteredSelectedRowModel().rows.length} of{" "}
                 {table.getFilteredRowModel().rows.length} row(s) selected
               </div>
-              <DeleteAlertDialog
+              <UserDeleteAlertDialog
                 onDelete={table.options.meta?.deleteRows}
-                departmentIds={getRowIdSelection()}
+                userIds={getRowIdSelection()}
               >
                 <Button variant="ghost" size="icon">
                   <Trash className="h-4 w-4" />
                 </Button>
-              </DeleteAlertDialog>
+              </UserDeleteAlertDialog>
             </CardContent>
           </Card>
         </div>
