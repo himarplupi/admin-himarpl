@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import type { User } from "@prisma/client";
+import type { Department, User } from "../types";
 
 const createFormSchema = z.object({
   name: z
@@ -53,8 +53,10 @@ const createFormSchema = z.object({
 type CreateFormSchema = z.infer<typeof createFormSchema>;
 
 export function UserCreateDialog({
+  departments,
   onCreate,
 }: {
+  departments: Department[];
   onCreate: (data: User) => void;
 }) {
   const createMutation = api.user.create.useMutation();
@@ -65,6 +67,7 @@ export function UserCreateDialog({
       name: "",
       image: "",
       role: "member",
+      email: "",
     },
   });
 
@@ -168,6 +171,38 @@ export function UserCreateDialog({
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="departmentId"
+                    disabled={departments.length === 0}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Departemen</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih departemen..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {departments.map((department) => (
+                              <SelectItem
+                                key={department.id}
+                                value={department.id}
+                              >
+                                {department.acronym}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

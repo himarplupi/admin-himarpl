@@ -24,7 +24,7 @@ import {
   UserEditWrapper,
 } from "./user-edit-dialog";
 import { abbreviation } from "@/lib/utils";
-import type { User } from "@prisma/client";
+import type { User } from "../types";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -48,21 +48,6 @@ export const columns: ColumnDef<User>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-  },
-  {
-    accessorKey: "role",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Role
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="capitalize">{row.getValue("role")}</div>,
   },
   {
     accessorKey: "image",
@@ -95,20 +80,61 @@ export const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
-  // {
-  //   accessorKey: "departemen",
-  //   header: ({ column }) => {
-  //     return (
-  //       <Button
-  //         variant="ghost"
-  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //       >
-  //         Departemen
-  //         <ArrowUpDown className="ml-2 h-4 w-4" />
-  //       </Button>
-  //     );
-  //   },
-  // },
+  {
+    accessorKey: "accounts",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const accounts = row.original.accounts;
+      return (
+        <div className="capitalize">
+          {accounts && accounts.length > 0 ? "Aktif" : "Belum Aktif"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "role",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Role
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="capitalize">{row.getValue("role")}</div>,
+  },
+  {
+    accessorKey: "departmentId",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Departemen
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const department = row.original.department;
+      return <div className="capitalize">{department?.acronym}</div>;
+    },
+  },
   {
     id: "actions",
     enableHiding: false,
@@ -151,6 +177,7 @@ export const columns: ColumnDef<User>[] = [
             </DropdownMenu>
 
             <UserEditContent
+              departments={table.options.meta?.departments ?? []}
               user={user}
               onEdit={(data) => table.options.meta?.updateRow(data)}
             />

@@ -14,12 +14,12 @@ import { RecentLogin } from "./_components/recent-login";
 import { OverviewPost } from "./_components/overview";
 
 export default async function Home() {
-  noStore();
-
   const session = await getServerAuthSession();
 
   if (!session) return redirect("/login");
   if (session.user.role !== "admin") return redirect("https://himarpl.com");
+
+  noStore();
 
   return (
     <main className="container min-h-screen flex-1 space-y-4 p-8 pt-20">

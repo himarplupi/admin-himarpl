@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { api } from "@/trpc/react";
 import {
   flexRender,
   getCoreRowModel,
@@ -30,7 +31,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { columns } from "./columns";
 import { UserCreateDialog } from "./user-create-dialog";
 import { UserDeleteAlertDialog } from "./user-delete-alert";
-import type { User } from "@prisma/client";
 import type {
   VisibilityState,
   ColumnFiltersState,
@@ -38,16 +38,30 @@ import type {
   SortingState,
   RowData,
 } from "@tanstack/table-core";
+import type { Department, User } from "../types";
+import type { Session } from "next-auth";
 
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
     deleteRows: (ids: string[]) => void;
     updateRow: (newData?: TData) => void;
+    departments: Department[];
+    session: Session;
   }
 }
 
-export function DataTableUsers({ data }: { data: User[] }) {
-  const [users, setUsers] = React.useState<User[]>(data);
+export function DataTableUsers({
+  session,
+  usersData,
+}: {
+  session: Session;
+  usersData: User[];
+}) {
+  const departments =
+    (api.department.getManySelect.useQuery({
+      acronym: true,
+    }).data as Department[]) ?? [];
+  const [users, setUsers] = React.useState<User[]>(usersData);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -58,12 +72,12 @@ export function DataTableUsers({ data }: { data: User[] }) {
   const getRowIdSelection = React.useCallback(
     () =>
       users
-        .filter((department, index) => {
+        .filter((user, index) => {
           if (rowSelection[index]) {
-            return department.id;
+            return user.id;
           }
         })
-        .map((department) => department.id),
+        .map((user) => user.id),
     [users, rowSelection],
   );
 
@@ -85,6 +99,8 @@ export function DataTableUsers({ data }: { data: User[] }) {
       rowSelection,
     },
     meta: {
+      session,
+      departments,
       deleteRows: (ids: string[]) => {
         setUsers((prevData) =>
           prevData.filter((user) => !ids.includes(user.id)),
@@ -93,9 +109,17 @@ export function DataTableUsers({ data }: { data: User[] }) {
       },
       updateRow: (newUser?: User) => {
         if (!newUser) return;
+        const department = departments.find(
+          (department) => department.id === newUser.departmentId,
+        );
         setUsers((prevData) =>
           prevData.map((prevUser) =>
-            prevUser.id === newUser.id ? newUser : prevUser,
+            prevUser.id === newUser.id
+              ? {
+                  ...newUser,
+                  department,
+                }
+              : prevUser,
           ),
         );
       },
@@ -108,8 +132,17 @@ export function DataTableUsers({ data }: { data: User[] }) {
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
           <UserCreateDialog
+            departments={departments}
             onCreate={(newData) =>
-              setUsers((prevData) => [...prevData, newData])
+              setUsers((prevData) => [
+                ...prevData,
+                {
+                  ...newData,
+                  department: departments.find(
+                    (department) => department.id === newData.departmentId,
+                  ),
+                },
+              ])
             }
           />
           <Input

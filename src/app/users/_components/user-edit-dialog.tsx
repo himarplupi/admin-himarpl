@@ -33,7 +33,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import type { User } from "@prisma/client";
+import type { Department, User } from "../types";
+import { Session } from "next-auth";
 
 const editFormSchema = z.object({
   name: z
@@ -79,9 +80,11 @@ export function UserEditTrigger({ children }: { children: React.ReactNode }) {
 
 export function UserEditContent({
   user,
+  departments,
   onEdit,
 }: {
   user: User;
+  departments: Department[];
   onEdit: (data?: User) => void;
 }) {
   const updateMutation = api.user.update.useMutation();
@@ -165,7 +168,7 @@ export function UserEditContent({
                 <FormField
                   control={form.control}
                   name="email"
-                  disabled
+                  disabled={user.accounts && user.accounts.length > 0}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
@@ -200,6 +203,38 @@ export function UserEditContent({
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="departmentId"
+                  disabled={departments.length === 0}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Departemen</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih departemen..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {departments.map((department) => (
+                            <SelectItem
+                              key={department.id}
+                              value={department.id}
+                            >
+                              {department.acronym}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

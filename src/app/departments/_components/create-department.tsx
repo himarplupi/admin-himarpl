@@ -47,7 +47,14 @@ const createFormSchema = z.object({
     }),
   image: z.string(),
   description: z.string(),
-  acronym: z.string(),
+  acronym: z
+    .string()
+    .max(32, {
+      message: "Acronym must be less than 32 characters",
+    })
+    .min(2, {
+      message: "Acronym must be more than 2 characters",
+    }),
   type: z.enum(["BE", "DP"]),
 });
 
