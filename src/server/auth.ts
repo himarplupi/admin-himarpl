@@ -8,6 +8,7 @@ import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/server/db";
 import { api } from "@/trpc/server";
+import type { User as PrismaUser } from "@prisma/client";
 import { env } from "@/env";
 
 /**
@@ -24,7 +25,7 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
-  interface User {
+  interface User extends PrismaUser {
     role: "admin" | "member";
   }
 }
@@ -79,11 +80,11 @@ export const authOptions: NextAuthOptions = {
         if (!res) return "/login?errorMsg=Failed to insert account";
       }
 
-      await api.user.putLastLogin.mutate(user.id);
-
       return true;
     },
-    session: ({ session, user }) => {
+    session: async ({ session, user }) => {
+      await api.user.putLastLogin.mutate(user.id);
+
       return {
         ...session,
         user: {
