@@ -83,8 +83,6 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     session: async ({ session, user }) => {
-      await api.user.putLastLogin.mutate(user.id);
-
       return {
         ...session,
         user: {

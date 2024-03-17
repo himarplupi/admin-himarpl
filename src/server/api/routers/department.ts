@@ -34,6 +34,13 @@ export const departmentRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.department.create({
         data: {
           name: input.name,
@@ -47,6 +54,13 @@ export const departmentRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.department.delete({
         where: { id: input },
         select: { id: true },
@@ -55,6 +69,13 @@ export const departmentRouter = createTRPCRouter({
   deleteMany: protectedProcedure
     .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.department.deleteMany({
         where: { id: { in: input } },
       });
@@ -71,6 +92,13 @@ export const departmentRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.department.update({
         where: { id: input.id },
         data: {

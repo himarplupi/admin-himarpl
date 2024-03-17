@@ -41,17 +41,16 @@ export const userRouter = createTRPCRouter({
   getByEmail: publicProcedure.input(z.string()).query(({ ctx, input }) => {
     return ctx.db.user.findFirst({ where: { email: input } });
   }),
-  putLastLogin: publicProcedure
-    .input(z.string())
-    .mutation(async ({ ctx, input }) => {
-      return await ctx.db.user.update({
-        where: { id: input },
-        data: { lastLoginAt: new Date() },
-      });
-    }),
   deleteMany: protectedProcedure
     .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.user.deleteMany({
         where: { id: { in: input } },
       });
@@ -67,6 +66,13 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.user.create({
         data: input,
       });
@@ -83,7 +89,13 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      console.log(input);
+      const userId = ctx.session.user.id;
+
+      await ctx.db.user.update({
+        where: { id: userId },
+        data: { lastLoginAt: new Date() },
+      });
+
       return await ctx.db.user.update({
         where: { id: input.id },
         data: {
