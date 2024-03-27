@@ -8,91 +8,70 @@ import {
   Tooltip,
 } from "recharts";
 
-const data = [
-  {
-    name: "Jan",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Feb",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Mar",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Apr",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "May",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Jun",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Jul",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Aug",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Sep",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Oct",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Nov",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-  {
-    name: "Dec",
-    total: Math.floor(Math.random() * 25) + 5,
-  },
-];
-
-export function OverviewPost() {
+export function OverviewPost({
+  data,
+}: {
+  data: { date: string; total: number }[];
+}) {
   return (
-    <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={data}>
-        <XAxis
-          dataKey="name"
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={12}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={12}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(value) => `${value}`}
-        />
-        <Bar
-          dataKey="total"
-          fill="currentColor"
-          radius={[4, 4, 0, 0]}
-          className="fill-primary"
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "hsl(var(--popover))",
-            borderRadius: "var(--radius)",
-            borderColor: "hsl(var(--border))",
-            color: "hsl(var(--primary-foreground))",
-          }}
-          cursor={{ fill: "hsl(var(--accent))", opacity: 0.5 }}
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <>
+      {data.length === 0 && (
+        <div className="flex min-h-32 items-center justify-center">
+          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+            Tidak ada data postingan
+          </h4>
+        </div>
+      )}
+      {data.length > 0 && (
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={data}>
+            <XAxis
+              dataKey="date"
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value: string) =>
+                `${new Date(value).toLocaleDateString("id-ID", {
+                  weekday: "short",
+                  day: "2-digit",
+                })}`
+              }
+            />
+            <YAxis
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}`}
+            />
+            <Bar
+              dataKey="total"
+              fill="currentColor"
+              radius={[4, 4, 0, 0]}
+              className="fill-primary"
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--popover))",
+                borderRadius: "var(--radius)",
+                borderColor: "hsl(var(--border))",
+                color: "hsl(var(--foreground))",
+              }}
+              cursor={{ fill: "hsl(var(--accent))", opacity: 0.5 }}
+              labelFormatter={(value: string) =>
+                new Date(value).toLocaleDateString("id-ID", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  weekday: "long",
+                })
+              }
+              formatter={(value: number) => `${value} postingan`}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </>
   );
 }
