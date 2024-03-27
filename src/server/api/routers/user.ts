@@ -107,4 +107,75 @@ export const userRouter = createTRPCRouter({
         },
       });
     }),
+
+  getStatistic: protectedProcedure.query(async ({ ctx }) => {
+    // 7 days last login
+    const usersLastLoginPromise = ctx.db.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        lastLoginAt: true,
+      },
+      orderBy: {
+        lastLoginAt: "desc",
+      },
+      where: {
+        lastLoginAt: { gt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+    });
+
+    // 1 hour last login
+    const totalUsersLastLoginPromise = ctx.db.user.count({
+      where: {
+        lastLoginAt: { gt: new Date(Date.now() - 1 * 60 * 60 * 1000) },
+      },
+    });
+
+    const totalUserPreviousLoginPromise = ctx.db.user.count({
+      where: {
+        lastLoginAt: {
+          lt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+          gte: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        },
+      },
+    });
+
+    const totalUsersPromise = ctx.db.user.count();
+
+    const totalUsersActivePromise = ctx.db.user.count({
+      where: {
+        accounts: {
+          some: {
+            id: {
+              not: undefined,
+            },
+          },
+        },
+      },
+    });
+
+    const [
+      totalUsers,
+      totalUsersLastLogin,
+      totalUserPreviousLogin,
+      usersLastLogin,
+      totalUsersActive,
+    ] = await Promise.all([
+      totalUsersPromise,
+      totalUsersLastLoginPromise,
+      totalUserPreviousLoginPromise,
+      usersLastLoginPromise,
+      totalUsersActivePromise,
+    ]);
+
+    return {
+      totalUsers,
+      totalUsersLastLogin,
+      totalDiffUsersLastLogin: totalUsersLastLogin - totalUserPreviousLogin,
+      totalUsersActive,
+      usersLastLogin,
+    };
+  }),
 });

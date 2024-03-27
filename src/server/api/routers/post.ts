@@ -32,8 +32,11 @@ export const postRouter = createTRPCRouter({
     const totalPostsIn7Days = posts7Days.length - posts7DaysBefore;
 
     const percentageIn7Days =
-      (totalPostsIn7Days / (posts7DaysBefore === 0 ? 1 : posts7DaysBefore)) *
-      100;
+      Math.round(
+        (totalPostsIn7Days / (posts7DaysBefore === 0 ? 1 : posts7DaysBefore)) *
+          100 *
+          100,
+      ) / 100;
 
     return {
       totalPostsIn7Days,

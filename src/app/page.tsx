@@ -20,28 +20,17 @@ export default async function Home() {
   if (!session) return redirect("/login");
   if (session.user.role !== "admin") return redirect("https://himarpl.com");
 
+  const {
+    totalUsers,
+    totalUsersActive,
+    totalUsersLastLogin,
+    totalDiffUsersLastLogin,
+    usersLastLogin,
+  } = await api.user.getStatistic.query();
   const { percentageIn7Days, posts7Days, totalPostsIn7Days } =
     await api.post.getStatistic.query();
 
-  let postOverviewData: { date: string; total: number }[] = [];
-
-  if (posts7Days.length > 0) {
-    postOverviewData = posts7Days.reduce(
-      (acc, post) => {
-        if (!post) return acc;
-        if (!post.publishedAt) return acc;
-        const date = new Date(post.publishedAt).toLocaleDateString();
-        const existingData = acc.find((data) => data.date === date);
-        if (existingData) {
-          existingData.total++;
-        } else {
-          acc.push({ date, total: 1 });
-        }
-        return acc;
-      },
-      [] as { date: string; total: number }[],
-    );
-  }
+  const postOverviewData = generatePostOverview(posts7Days);
 
   return (
     <main className="container min-h-screen flex-1 space-y-4 p-8 pt-20">
@@ -80,7 +69,7 @@ export default async function Home() {
             <LogIn className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">13 Akun</div>
+            <div className="text-2xl font-bold">{totalUsersActive} Akun</div>
             <p className="text-xs text-muted-foreground">telah aktifasi</p>
           </CardContent>
         </Card>
@@ -92,7 +81,7 @@ export default async function Home() {
             <Users className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">72 Akun</div>
+            <div className="text-2xl font-bold">{totalUsers} Akun</div>
             <p className="text-xs text-muted-foreground">
               terdaftar dalam sistem
             </p>
@@ -106,9 +95,12 @@ export default async function Home() {
             <Activity className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5 Akun</div>
+            <div className="text-2xl font-bold">{totalUsersLastLogin} Akun</div>
             <p className="text-xs text-muted-foreground">
-              +2 satu jam terakhir
+              {totalDiffUsersLastLogin > 0
+                ? `+${totalDiffUsersLastLogin}`
+                : totalDiffUsersLastLogin}{" "}
+              satu jam terakhir
             </p>
           </CardContent>
         </Card>
@@ -126,13 +118,43 @@ export default async function Home() {
         <Card className="col-span-4 md:col-span-3">
           <CardHeader>
             <CardTitle>Aktivitas Akun</CardTitle>
-            <CardDescription>13 akun aktif bulan ini</CardDescription>
+            <CardDescription>
+              {usersLastLogin.length} akun aktif pekan ini
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentLogin />
+            <RecentLogin data={usersLastLogin} />
           </CardContent>
         </Card>
       </div>
     </main>
   );
+}
+
+function generatePostOverview(
+  posts7Days: {
+    publishedAt: Date | null;
+  }[],
+) {
+  let postOverviewData: { date: string; total: number }[] = [];
+
+  if (posts7Days.length > 0) {
+    postOverviewData = posts7Days.reduce(
+      (acc, post) => {
+        if (!post) return acc;
+        if (!post.publishedAt) return acc;
+        const date = new Date(post.publishedAt).toLocaleDateString();
+        const existingData = acc.find((data) => data.date === date);
+        if (existingData) {
+          existingData.total++;
+        } else {
+          acc.push({ date, total: 1 });
+        }
+        return acc;
+      },
+      [] as { date: string; total: number }[],
+    );
+  }
+
+  return postOverviewData;
 }
