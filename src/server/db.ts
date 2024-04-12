@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import type { Account } from "@prisma/client";
 
 import { env } from "@/env";
 

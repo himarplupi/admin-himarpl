@@ -34,7 +34,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Department, User } from "../types";
-import { Session } from "next-auth";
 
 const editFormSchema = z.object({
   name: z
