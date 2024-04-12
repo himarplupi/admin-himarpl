@@ -85,13 +85,13 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
       rowSelection,
     },
     meta: {
-      deleteRows: (ids: string[]) => {
+      deleteRows: (ids) => {
         setDepartments((prevData) =>
           prevData.filter((department) => !ids.includes(department.id)),
         );
         table.resetRowSelection();
       },
-      updateRow: (newDepartment?: Department) => {
+      updateRow: (newDepartment) => {
         if (!newDepartment) return;
         setDepartments((prevData) =>
           prevData.map((prevDepartment) =>

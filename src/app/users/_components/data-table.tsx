@@ -45,8 +45,8 @@ declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
     deleteRows: (ids: string[]) => void;
     updateRow: (newData?: TData) => void;
-    departments: Department[];
-    session: Session;
+    departments?: Department[];
+    session?: Session;
   }
 }
 
