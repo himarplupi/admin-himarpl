@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users2, Waypoints } from "lucide-react";
+import { LayoutDashboard, LogOut, Users2, Waypoints } from "lucide-react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
@@ -12,16 +12,29 @@ import {
 } from "@/components/ui/resizable";
 import Image from "next/image";
 import { Nav } from "@/components/common/nav";
-import { cn } from "@/lib/utils";
+import { abbreviation, cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogoHIMARPL } from "@/components/common/logo-himarpl";
 import { useTheme } from "next-themes";
 import { ModeToggle } from "./mode-toggle";
 
 import LogoHIMARPLLight from "@/images/logo-himarpl-light.png";
 import LogoHIMARPLDark from "@/images/logo-himarpl-dark.png";
+import { api } from "@/trpc/react";
+import type { Session } from "next-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "next-auth/react";
+import { Button } from "../ui/button";
 
 interface DashboardProps {
+  session: Session | null;
   defaultLayout: number[] | undefined;
   defaultCollapsed?: boolean;
   navCollapsedSize: number;
@@ -31,6 +44,7 @@ interface DashboardProps {
 const hideOnRoutes = ["/login"];
 
 export function Admin({
+  session,
   defaultLayout = [265, 1095],
   defaultCollapsed = false,
   navCollapsedSize,
@@ -39,6 +53,8 @@ export function Admin({
   const pathname = usePathname();
   const { resolvedTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
+  const departmentQuery = api.department.count.useQuery();
+  const userQuery = api.user.count.useQuery();
 
   return !hideOnRoutes.includes(pathname) ? (
     <TooltipProvider delayDuration={0}>
@@ -109,14 +125,14 @@ export function Admin({
                   },
                   {
                     title: "Pengurus",
-                    label: "",
+                    label: userQuery.data?.toString() ?? "",
                     icon: Users2,
                     href: "/users",
                     variant: pathname === "/users" ? "default" : "ghost",
                   },
                   {
                     title: "Departemen",
-                    label: "",
+                    label: departmentQuery.data?.toString() ?? "",
                     icon: Waypoints,
                     href: "/departments",
                     variant: pathname === "/departments" ? "default" : "ghost",
@@ -125,7 +141,7 @@ export function Admin({
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-y-2">
               <div
                 className={cn(
                   "flex items-center justify-center",
@@ -133,6 +149,42 @@ export function Admin({
                 )}
               >
                 <ModeToggle isCollapsed={isCollapsed} />
+              </div>
+              <div
+                className={cn(
+                  "flex items-center",
+                  isCollapsed ? "justify-center px-1" : "justify-start px-2",
+                )}
+              >
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={session?.user.image ?? ""} />
+                        <AvatarFallback>
+                          {abbreviation(session?.user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {!isCollapsed && (
+                        <span className="ml-2 truncate">
+                          {session?.user.name}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>{session?.user.name}</DropdownMenuLabel>
+
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => signOut()}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>

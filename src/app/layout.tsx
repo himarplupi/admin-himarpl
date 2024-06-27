@@ -9,6 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Admin } from "@/components/common/admin";
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { getServerAuthSession } from "@/server/auth";
+
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -71,6 +73,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerAuthSession();
   const layout = cookies().get("react-resizable-panels:layout");
   const collapsed = cookies().get("react-resizable-panels:collapsed");
 
@@ -100,6 +103,7 @@ export default async function RootLayout({
           <ScrollArea className="h-screen">
             <TRPCReactProvider>
               <Admin
+                session={session}
                 defaultLayout={defaultLayout}
                 defaultCollapsed={defaultCollapsed}
                 navCollapsedSize={4}

@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/card";
 import { unstable_noStore as noStore } from "next/cache";
 import { api } from "@/trpc/server";
-import { getServerAuthSession } from "@/server/auth";
-import { redirect } from "next/navigation";
 import { RecentLogin } from "@/components/dashboard/recent-login";
 import { OverviewPost } from "@/components/dashboard/overview";
+import { getServerAuthSession } from "@/server/auth";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   noStore();
+
   const session = await getServerAuthSession();
 
   if (!session) return redirect("/login");
@@ -34,7 +35,7 @@ export default async function Home() {
   const postOverviewData = generatePostOverview(posts7Days);
 
   return (
-    <main className="container min-h-screen flex-1 space-y-4 p-8 pt-20">
+    <main className="container min-h-screen flex-1 space-y-4 p-8">
       <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
         Dashboard
       </h2>

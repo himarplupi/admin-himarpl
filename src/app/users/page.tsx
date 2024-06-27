@@ -18,9 +18,9 @@ export default async function UsersPage() {
   })) as User[];
 
   return (
-    <main className="container min-h-screen flex-1 p-8 pt-20">
+    <main className="container min-h-screen flex-1 p-8">
       <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-        Manage User
+        Kelola Pengurus
       </h2>
       <DataTableUsers session={session} usersData={users} />
     </main>

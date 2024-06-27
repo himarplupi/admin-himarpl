@@ -2,6 +2,9 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const departmentRouter = createTRPCRouter({
+  count: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db.department.count();
+  }),
   get: protectedProcedure.query(({ ctx }) => {
     return ctx.db.department.findMany();
   }),
