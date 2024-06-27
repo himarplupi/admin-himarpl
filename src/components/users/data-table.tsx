@@ -49,6 +49,7 @@ import type {
 } from "@tanstack/table-core";
 import type { Department, User } from "@/components/users/types";
 import type { Session } from "next-auth";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 // declare module "@tanstack/table-core" {
 //   interface TableMeta<TData extends RowData> {}
@@ -71,6 +72,7 @@ export function DataTableUsers({ session }: { session: Session }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [parent] = useAutoAnimate();
 
   const getRowIdSelection = React.useCallback(() => {
     if (!users.data) return [];
@@ -232,7 +234,7 @@ export function DataTableUsers({ session }: { session: Session }) {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody ref={parent}>
             {table.getRowModel().rows ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
