@@ -87,6 +87,7 @@ model User {
   username      String?       @unique
   bio           String?
   position      String?
+  periods       String[]
   role          Role          @default(member)
   lastLoginAt   DateTime?
   createdAt     DateTime      @default(now())
