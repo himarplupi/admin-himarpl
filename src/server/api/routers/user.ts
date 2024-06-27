@@ -12,29 +12,28 @@ export const userRouter = createTRPCRouter({
   getMany: protectedProcedure.query(({ ctx }) => {
     return ctx.db.user.findMany();
   }),
-  getManyInclude: protectedProcedure
+  byPeriod: protectedProcedure
     .input(
       z.object({
-        department: z
-          .object({
-            id: z.boolean().default(true),
-            acronym: z.boolean().optional(),
-            name: z.boolean().optional(),
-          })
-          .optional(),
-        accounts: z
-          .object({
-            id: z.boolean().default(true),
-            provider: z.boolean().optional(),
-          })
-          .optional(),
+        period: z.string(),
       }),
     )
-    .query(({ ctx, input }) => {
+    .mutation(({ ctx, input }) => {
       return ctx.db.user.findMany({
         include: {
-          department: input.department && { select: input.department },
-          accounts: input.accounts && { select: input.accounts },
+          department: {
+            select: {
+              acronym: true,
+            },
+          },
+          accounts: {
+            select: {
+              id: true,
+            },
+          },
+        },
+        where: {
+          periods: { has: input.period },
         },
       });
     }),
@@ -64,17 +63,15 @@ export const userRouter = createTRPCRouter({
         name: z.string(),
         email: z.string().email(),
         image: z.string(),
+        position: z.string(),
+        periods: z.array(z.string()),
         role: z.enum(["admin", "member"]),
         departmentId: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
+      input.email = input.email.toLowerCase();
+      input.position = input.position.toLowerCase();
 
       return await ctx.db.user.create({
         data: input,
@@ -92,13 +89,6 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
-
       return await ctx.db.user.update({
         where: { id: input.id },
         data: {

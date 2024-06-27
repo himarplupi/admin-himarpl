@@ -16,6 +16,8 @@ const user = z.object({
   emailVerified: z.date().optional().nullable(),
   image: z.string().url().optional().nullable(),
   role: z.enum(["admin", "member"]),
+  position: z.string().optional().nullable(),
+  periods: z.array(z.string()),
   lastLoginAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),

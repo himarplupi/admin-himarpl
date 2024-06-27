@@ -18,6 +18,15 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -38,30 +47,23 @@ import type {
   SortingState,
   RowData,
 } from "@tanstack/table-core";
-import type { Department, User } from "../types";
+import type { Department, User } from "@/components/users/types";
 import type { Session } from "next-auth";
 
-declare module "@tanstack/table-core" {
-  interface TableMeta<TData extends RowData> {
-    deleteRows: (ids: string[]) => void;
-    updateRow: (newData?: TData) => void;
-    departments?: Department[];
-    session?: Session;
-  }
-}
+// declare module "@tanstack/table-core" {
+//   interface TableMeta<TData extends RowData> {}
+// }
 
-export function DataTableUsers({
-  session,
-  usersData,
-}: {
-  session: Session;
-  usersData: User[];
-}) {
+export function DataTableUsers({ session }: { session: Session }) {
+  const [currentPeriod, setCurrentPeriod] = React.useState("2024");
+  const users = api.user.byPeriod.useMutation();
+  const utils = api.useUtils();
+
   const departments =
     (api.department.getManySelect.useQuery({
       acronym: true,
     }).data as Department[]) ?? [];
-  const [users, setUsers] = React.useState<User[]>(usersData);
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -69,21 +71,21 @@ export function DataTableUsers({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const getRowIdSelection = React.useCallback(
-    () =>
-      users
-        .filter((user, index) => {
-          if (rowSelection[index]) {
-            return user.id;
-          }
-        })
-        .map((user) => user.id),
-    [users, rowSelection],
-  );
+
+  const getRowIdSelection = React.useCallback(() => {
+    if (!users.data) return [];
+    return users.data
+      .filter((user, index) => {
+        if (rowSelection[index]) {
+          return user.id;
+        }
+      })
+      .map((user) => user.id);
+  }, [users, rowSelection]);
 
   const table = useReactTable({
     columns,
-    data: users,
+    data: (users.data as User[]) ?? [],
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -98,33 +100,12 @@ export function DataTableUsers({
       columnVisibility,
       rowSelection,
     },
-    meta: {
-      session,
-      departments,
-      deleteRows: (ids: string[]) => {
-        setUsers((prevData) =>
-          prevData.filter((user) => !ids.includes(user.id)),
-        );
-        table.resetRowSelection();
-      },
-      updateRow: (newUser?: User) => {
-        if (!newUser) return;
-        const department = departments.find(
-          (department) => department.id === newUser.departmentId,
-        );
-        setUsers((prevData) =>
-          prevData.map((prevUser) =>
-            prevUser.id === newUser.id
-              ? {
-                  ...newUser,
-                  department,
-                }
-              : prevUser,
-          ),
-        );
-      },
-    },
   });
+
+  React.useEffect(() => {
+    users.mutate({ period: currentPeriod });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPeriod]);
 
   return (
     <div className="w-full">
@@ -132,18 +113,12 @@ export function DataTableUsers({
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
           <UserCreateDialog
+            currentPeriod={currentPeriod}
             departments={departments}
-            onCreate={(newData) =>
-              setUsers((prevData) => [
-                ...prevData,
-                {
-                  ...newData,
-                  department: departments.find(
-                    (department) => department.id === newData.departmentId,
-                  ),
-                },
-              ])
-            }
+            onCreate={async () => {
+              users.mutate({ period: currentPeriod });
+              await utils.user.invalidate();
+            }}
           />
           <Input
             placeholder="Filter names..."
@@ -182,27 +157,30 @@ export function DataTableUsers({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+            <Select
+              value={currentPeriod}
+              onValueChange={(value) => {
+                setCurrentPeriod(value);
+              }}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Tahun Periode</SelectLabel>
+                  <SelectItem value="2023">2023</SelectItem>
+                  <SelectItem value="2024">2024</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                  <SelectItem value="2026">2026</SelectItem>
+                  <SelectItem value="2027">2027</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}
+
       {/* If table row selected show controls */}
       {table.getFilteredSelectedRowModel().rows.length > 0 && (
         <div className="my-4 h-10 rounded-md border">
@@ -233,6 +211,7 @@ export function DataTableUsers({
           </Card>
         </div>
       )}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -254,7 +233,7 @@ export function DataTableUsers({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -272,10 +251,7 @@ export function DataTableUsers({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={2} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>

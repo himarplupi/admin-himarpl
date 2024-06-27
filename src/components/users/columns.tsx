@@ -24,7 +24,7 @@ import {
   UserEditWrapper,
 } from "./user-edit-dialog";
 import { abbreviation } from "@/lib/utils";
-import type { User } from "../types";
+import type { User } from "./types";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -118,6 +118,23 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => <div className="capitalize">{row.getValue("role")}</div>,
   },
   {
+    accessorKey: "position",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Jabatan
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("position")}</div>
+    ),
+  },
+  {
     accessorKey: "departmentId",
     header: ({ column }) => {
       return (
@@ -132,7 +149,7 @@ export const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const department = row.original.department;
-      return <div className="capitalize">{department?.acronym}</div>;
+      return <div className="uppercase">{department?.acronym}</div>;
     },
   },
   {
@@ -176,11 +193,11 @@ export const columns: ColumnDef<User>[] = [
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <UserEditContent
+            {/* <UserEditContent
               departments={table.options.meta?.departments ?? []}
               user={user}
               onEdit={(data) => table.options.meta?.updateRow(data)}
-            />
+            /> */}
           </UserEditWrapper>
 
           <UserDeleteAlertContent

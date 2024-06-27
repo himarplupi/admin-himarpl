@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import type { Department, User } from "../types";
+import type { Department, User } from "./types";
 
 const createFormSchema = z.object({
   name: z
@@ -45,6 +45,8 @@ const createFormSchema = z.object({
       message: "Name must be more than 4 characters",
     }),
   image: z.string(),
+  position: z.string(),
+  periods: z.array(z.string()),
   email: z.string().email(),
   role: z.enum(["admin", "member"]),
   departmentId: z.string().optional(),
@@ -54,9 +56,11 @@ type CreateFormSchema = z.infer<typeof createFormSchema>;
 
 export function UserCreateDialog({
   departments,
+  currentPeriod,
   onCreate,
 }: {
   departments: Department[];
+  currentPeriod: string;
   onCreate: (data: User) => void;
 }) {
   const createMutation = api.user.create.useMutation();
@@ -67,12 +71,16 @@ export function UserCreateDialog({
       name: "",
       image: "",
       role: "member",
+      position: "Staff",
+      periods: [currentPeriod],
       email: "",
     },
   });
 
   const onSubmit = async (values: CreateFormSchema) => {
     setOpen(false);
+
+    values.periods = [currentPeriod];
 
     const mutationPromise = createMutation.mutateAsync(values);
 
@@ -203,6 +211,20 @@ export function UserCreateDialog({
                             ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jabatan</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

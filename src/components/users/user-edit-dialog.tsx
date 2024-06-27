@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import type { Department, User } from "../types";
+import type { Department, User } from "./types";
 
 const editFormSchema = z.object({
   name: z
