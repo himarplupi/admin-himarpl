@@ -1,12 +1,13 @@
 import "@/styles/globals.css";
-
+import { cookies } from "next/headers";
 import { Montserrat as FontSans } from "next/font/google";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { NavBar } from "./_components/navbar";
+import { Admin } from "@/components/common/admin";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -70,23 +71,46 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const layout = cookies().get("react-resizable-panels:layout");
+  const collapsed = cookies().get("react-resizable-panels:collapsed");
+
+  const defaultLayout = layout
+    ? (JSON.parse(layout.value) as number[])
+    : undefined;
+
+  const defaultCollapsed = collapsed
+    ? (JSON.parse(collapsed.value) as boolean)
+    : undefined;
+
   return (
     <html lang="en">
       <body
         className={cn(
-          "dark min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
           fontSerif.variable,
         )}
       >
-        <ScrollArea className="h-screen">
-          <TRPCReactProvider>
-            <NavBar />
-            {children}
-          </TRPCReactProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ScrollArea className="h-screen">
+            <TRPCReactProvider>
+              <Admin
+                defaultLayout={defaultLayout}
+                defaultCollapsed={defaultCollapsed}
+                navCollapsedSize={4}
+              >
+                {children}
+              </Admin>
+            </TRPCReactProvider>
 
-          <Toaster />
-        </ScrollArea>
+            <Toaster />
+          </ScrollArea>
+        </ThemeProvider>
       </body>
     </html>
   );

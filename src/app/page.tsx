@@ -1,4 +1,5 @@
 import { Users, LogIn, StickyNote, Activity } from "lucide-react";
+
 import {
   Card,
   CardTitle,
@@ -10,8 +11,8 @@ import { unstable_noStore as noStore } from "next/cache";
 import { api } from "@/trpc/server";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
-import { RecentLogin } from "./_components/recent-login";
-import { OverviewPost } from "./_components/overview";
+import { RecentLogin } from "@/components/dashboard/recent-login";
+import { OverviewPost } from "@/components/dashboard/overview";
 
 export default async function Home() {
   noStore();
