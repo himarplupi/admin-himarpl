@@ -115,7 +115,7 @@ export default async function RootLayout({
               </div>
 
               <div className="sm:hidden">
-                <NavMobile>{children}</NavMobile>
+                <NavMobile session={session}>{children}</NavMobile>
               </div>
             </TRPCReactProvider>
 

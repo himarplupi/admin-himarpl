@@ -1,16 +1,36 @@
 "use client";
 
-import { LayoutDashboard, Menu, Users2, Waypoints } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Users2, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LogoHIMARPL } from "./logo-himarpl";
 import { Nav } from "./nav";
 import { usePathname } from "next/navigation";
+import { ModeToggle } from "./mode-toggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { abbreviation } from "@/lib/utils";
+import { signOut } from "next-auth/react";
+import { Session } from "next-auth";
 
-export function NavMobile({ children }: { children: React.ReactNode }) {
+const hideOnRoutes = ["/login"];
+
+export function NavMobile({
+  children,
+  session,
+}: {
+  session: Session | null;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
-  return (
+  return !hideOnRoutes.includes(pathname) ? (
     <>
       <nav className="container fixed top-0 z-50 flex w-full justify-between bg-background py-2">
         <div className="flex items-center justify-center">
@@ -23,7 +43,7 @@ export function NavMobile({ children }: { children: React.ReactNode }) {
             </Button>
           </SheetTrigger>
           <SheetContent>
-            <div className="grid gap-4 py-4">
+            <div className="flex min-h-[100%] flex-col justify-between">
               <Nav
                 isCollapsed={false}
                 links={[
@@ -50,11 +70,46 @@ export function NavMobile({ children }: { children: React.ReactNode }) {
                   },
                 ]}
               />
+
+              <div className="flex flex-col gap-y-2">
+                <div className="flex items-center justify-center">
+                  <ModeToggle isCollapsed={false} />
+                </div>
+                <div className="flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={session?.user.image ?? ""} />
+                          <AvatarFallback>
+                            {abbreviation(session?.user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>
+                        {session?.user.name}
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => signOut()}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
       </nav>
       <div className="mt-10">{children}</div>
     </>
+  ) : (
+    children
   );
 }
