@@ -31,7 +31,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "next-auth/react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 interface DashboardProps {
   session: Session | null;
@@ -65,7 +67,7 @@ export function Admin({
             sizes,
           )}`;
         }}
-        className="h-full max-h-[800px] items-stretch"
+        className="h-full max-h-screen items-stretch"
       >
         <ResizablePanel
           defaultSize={defaultLayout[0]}
@@ -192,7 +194,7 @@ export function Admin({
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={defaultLayout[1]}>
-          {children}
+          <ScrollArea className="h-screen">{children}</ScrollArea>
         </ResizablePanel>
       </ResizablePanelGroup>
     </TooltipProvider>

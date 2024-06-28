@@ -125,7 +125,7 @@ export function DataTableUsers({ session }: { session: Session }) {
   });
 
   return (
-    <div className="w-full">
+    <div>
       {/* If table row not selected show filter columns */}
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
@@ -225,7 +225,7 @@ export function DataTableUsers({ session }: { session: Session }) {
         </div>
       )}
 
-      <div className="rounded-md border">
+      <div className="rounded-md border sm:w-[80vw] md:w-[85vw] lg:w-full">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

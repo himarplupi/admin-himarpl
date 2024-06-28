@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { abbreviation } from "@/lib/utils";
+import { abbreviation, momentId } from "@/lib/utils";
 
 export function RecentLogin({
   data,
@@ -23,26 +23,12 @@ export function RecentLogin({
           <div className="ml-4 space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
-            <p className="text-sm font-medium text-muted-foreground md:hidden">
-              {user.lastLoginAt?.toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "long",
-                weekday: "long",
-                hour: "numeric",
-                minute: "numeric",
-                second: "numeric",
-              })}
+            <p className="text-xs font-medium text-muted-foreground md:hidden">
+              {momentId(user.lastLoginAt).fromNow()}
             </p>
           </div>
-          <p className="ml-auto hidden pl-4 text-right text-sm font-medium text-muted-foreground md:block">
-            {user.lastLoginAt?.toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "long",
-              weekday: "long",
-              hour: "numeric",
-              minute: "numeric",
-              second: "numeric",
-            })}
+          <p className="ml-auto hidden pl-4 text-right text-xs font-medium text-muted-foreground md:block">
+            {momentId(user.lastLoginAt).fromNow()}
           </p>
         </div>
       ))}
