@@ -142,13 +142,13 @@ export function DataTableUsers({ session }: { session: Session }) {
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
             }
-            className="ml-4 max-w-sm"
+            className="ml-4 hidden max-w-sm sm:flex"
           />
 
           <div className="ml-auto flex gap-x-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="hidden sm:flex">
                   Columns <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -225,7 +225,7 @@ export function DataTableUsers({ session }: { session: Session }) {
         </div>
       )}
 
-      <div className="rounded-md border sm:w-[80vw] md:w-[85vw] lg:w-full">
+      <div className="w-[82vw] rounded-md border sm:w-[80vw] md:w-[85vw] lg:w-full">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

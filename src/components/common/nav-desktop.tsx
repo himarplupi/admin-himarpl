@@ -33,7 +33,6 @@ import {
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useWindowSize } from "@uidotdev/usehooks";
 
 interface DashboardProps {
   session: Session | null;
@@ -45,7 +44,7 @@ interface DashboardProps {
 
 const hideOnRoutes = ["/login"];
 
-export function Admin({
+export function NavDesktop({
   session,
   defaultLayout = [265, 1095],
   defaultCollapsed = false,

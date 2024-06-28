@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Admin } from "@/components/common/admin";
 import { ThemeProvider } from "@/components/theme-provider";
+import { NavDesktop } from "@/components/common/nav-desktop";
+import { NavMobile } from "@/components/common/nav-mobile";
 
 import { getServerAuthSession } from "@/server/auth";
 
@@ -102,14 +103,20 @@ export default async function RootLayout({
         >
           <ScrollArea className="h-screen">
             <TRPCReactProvider>
-              <Admin
-                session={session}
-                defaultLayout={defaultLayout}
-                defaultCollapsed={defaultCollapsed}
-                navCollapsedSize={4}
-              >
-                {children}
-              </Admin>
+              <div className="hidden sm:block">
+                <NavDesktop
+                  session={session}
+                  defaultLayout={defaultLayout}
+                  defaultCollapsed={defaultCollapsed}
+                  navCollapsedSize={4}
+                >
+                  {children}
+                </NavDesktop>
+              </div>
+
+              <div className="sm:hidden">
+                <NavMobile>{children}</NavMobile>
+              </div>
             </TRPCReactProvider>
 
             <Toaster />
