@@ -5,6 +5,8 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 
+import { revalidatePath } from "next/cache";
+
 export const userRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.user.count();
@@ -18,7 +20,7 @@ export const userRouter = createTRPCRouter({
         period: z.string(),
       }),
     )
-    .mutation(({ ctx, input }) => {
+    .query(({ ctx, input }) => {
       return ctx.db.user.findMany({
         include: {
           department: {
@@ -46,13 +48,6 @@ export const userRouter = createTRPCRouter({
   deleteMany: protectedProcedure
     .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
-
       return await ctx.db.user.deleteMany({
         where: { id: { in: input } },
       });

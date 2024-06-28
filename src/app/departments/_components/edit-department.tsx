@@ -97,7 +97,7 @@ export function EditDepartmentContent({
   onEdit,
 }: {
   department: Department;
-  onEdit: (data?: Department) => void;
+  onEdit?: (data?: Department) => void;
 }) {
   const departmentMutation = api.department.put.useMutation();
   const form = useForm<EditFormSchema>({
@@ -140,7 +140,9 @@ export function EditDepartmentContent({
     });
 
     await mutationPromise.then((data) => {
-      onEdit(data);
+      if (onEdit) {
+        onEdit(data);
+      }
       form.reset({
         name: data.name,
         description: data.description ?? "",

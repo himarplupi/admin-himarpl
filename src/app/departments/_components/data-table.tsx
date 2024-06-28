@@ -39,13 +39,6 @@ import type {
   RowData,
 } from "@tanstack/table-core";
 
-declare module "@tanstack/table-core" {
-  interface TableMeta<TData extends RowData> {
-    deleteRows: (ids: string[]) => void;
-    updateRow: (newData?: TData) => void;
-  }
-}
-
 export function DataTableDepartments({ data }: { data: Department[] }) {
   const [departments, setDepartments] = React.useState<Department[]>(data);
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -85,22 +78,22 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
       rowSelection,
     },
     meta: {
-      deleteRows: (ids) => {
-        setDepartments((prevData) =>
-          prevData.filter((department) => !ids.includes(department.id)),
-        );
-        table.resetRowSelection();
-      },
-      updateRow: (newDepartment) => {
-        if (!newDepartment) return;
-        setDepartments((prevData) =>
-          prevData.map((prevDepartment) =>
-            prevDepartment.id === newDepartment.id
-              ? newDepartment
-              : prevDepartment,
-          ),
-        );
-      },
+      // deleteRows: (ids) => {
+      //   setDepartments((prevData) =>
+      //     prevData.filter((department) => !ids.includes(department.id)),
+      //   );
+      //   table.resetRowSelection();
+      // },
+      // updateRow: (newDepartment) => {
+      //   if (!newDepartment) return;
+      //   setDepartments((prevData) =>
+      //     prevData.map((prevDepartment) =>
+      //       prevDepartment.id === newDepartment.id
+      //         ? newDepartment
+      //         : prevDepartment,
+      //     ),
+      //   );
+      // },
     },
   });
 
@@ -192,7 +185,7 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
                 {table.getFilteredRowModel().rows.length} row(s) selected
               </div>
               <DeleteAlertDialog
-                onDelete={table.options.meta?.deleteRows}
+                // onDelete={table.options.meta?.deleteRows}
                 departmentIds={getRowIdSelection()}
               >
                 <Button variant="ghost" size="icon">

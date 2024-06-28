@@ -51,13 +51,15 @@ import type { Department, User } from "@/components/users/types";
 import type { Session } from "next-auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-// declare module "@tanstack/table-core" {
-//   interface TableMeta<TData extends RowData> {}
-// }
+declare module "@tanstack/table-core" {
+  interface TableMeta<TData extends RowData> {
+    onDeleteRows?: () => Promise<void>;
+  }
+}
 
 export function DataTableUsers({ session }: { session: Session }) {
   const [currentPeriod, setCurrentPeriod] = React.useState("2024");
-  const users = api.user.byPeriod.useMutation();
+  const users = api.user.byPeriod.useQuery({ period: currentPeriod });
   const utils = api.useUtils();
 
   const departments =
@@ -102,12 +104,13 @@ export function DataTableUsers({ session }: { session: Session }) {
       columnVisibility,
       rowSelection,
     },
+    meta: {
+      onDeleteRows: async () => {
+        await utils.user.invalidate();
+        table.resetRowSelection();
+      },
+    },
   });
-
-  React.useEffect(() => {
-    users.mutate({ period: currentPeriod });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPeriod]);
 
   return (
     <div className="w-full">
@@ -118,7 +121,6 @@ export function DataTableUsers({ session }: { session: Session }) {
             currentPeriod={currentPeriod}
             departments={departments}
             onCreate={async () => {
-              users.mutate({ period: currentPeriod });
               await utils.user.invalidate();
             }}
           />
@@ -171,11 +173,8 @@ export function DataTableUsers({ session }: { session: Session }) {
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Tahun Periode</SelectLabel>
-                  <SelectItem value="2023">2023</SelectItem>
                   <SelectItem value="2024">2024</SelectItem>
                   <SelectItem value="2025">2025</SelectItem>
-                  <SelectItem value="2026">2026</SelectItem>
-                  <SelectItem value="2027">2027</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -202,7 +201,7 @@ export function DataTableUsers({ session }: { session: Session }) {
                 {table.getFilteredRowModel().rows.length} row(s) selected
               </div>
               <UserDeleteAlertDialog
-                onDelete={table.options.meta?.deleteRows}
+                onDelete={table.options.meta?.onDeleteRows}
                 userIds={getRowIdSelection()}
               >
                 <Button variant="ghost" size="icon">

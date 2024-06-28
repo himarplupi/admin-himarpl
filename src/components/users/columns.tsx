@@ -202,7 +202,7 @@ export const columns: ColumnDef<User>[] = [
 
           <UserDeleteAlertContent
             userIds={[user.id]}
-            onDelete={table.options.meta?.deleteRows}
+            onDelete={table.options.meta?.onDeleteRows}
           />
         </UserDeleteAlertWrapper>
       );

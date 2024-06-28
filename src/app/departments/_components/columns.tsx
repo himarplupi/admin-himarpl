@@ -163,13 +163,13 @@ export const columns: ColumnDef<Department>[] = [
 
             <EditDepartmentContent
               department={department}
-              onEdit={(data) => table.options.meta?.updateRow(data)}
+              // onEdit={(data) => table.options.meta?.updateRow(data)}
             />
           </EditDepartmentWrapper>
 
           <DeleteAlertContent
             departmentIds={[department.id]}
-            onDelete={table.options.meta?.deleteRows}
+            // onDelete={table.options.meta?.deleteRows}
           />
         </DeleteAlertWrapper>
       );
