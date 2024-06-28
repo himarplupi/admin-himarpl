@@ -3,6 +3,7 @@ import { z } from "zod";
 const department = z.object({
   id: z.string(),
   acronym: z.string(),
+  type: z.enum(["BE", "DP"]),
 });
 
 export type Department = z.infer<typeof department>;

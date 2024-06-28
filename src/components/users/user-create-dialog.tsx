@@ -25,10 +25,12 @@ import {
 } from "@/components/ui/form";
 import {
   Select,
+  SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
-  SelectContent,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -201,14 +203,42 @@ export function UserCreateDialog({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {departments.map((department) => (
-                              <SelectItem
-                                key={department.id}
-                                value={department.id}
-                              >
-                                {department.acronym}
-                              </SelectItem>
-                            ))}
+                            <SelectGroup>
+                              <SelectLabel className="uppercase">
+                                Badan Eksekutif
+                              </SelectLabel>
+                              {departments
+                                .filter(
+                                  (department) => department.type === "BE",
+                                )
+                                .map((department) => (
+                                  <SelectItem
+                                    key={department.id}
+                                    value={department.id}
+                                    className="uppercase"
+                                  >
+                                    {department.acronym}
+                                  </SelectItem>
+                                ))}
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel className="uppercase">
+                                Dewan Perwakilan
+                              </SelectLabel>
+                              {departments
+                                .filter(
+                                  (department) => department.type === "DP",
+                                )
+                                .map((department) => (
+                                  <SelectItem
+                                    key={department.id}
+                                    value={department.id}
+                                    className="uppercase"
+                                  >
+                                    {department.acronym}
+                                  </SelectItem>
+                                ))}
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                         <FormMessage />

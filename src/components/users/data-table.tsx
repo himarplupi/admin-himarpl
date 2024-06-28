@@ -72,6 +72,7 @@ export function DataTableUsers() {
   const departments =
     (api.department.getManySelect.useQuery({
       acronym: true,
+      type: true,
     }).data as Department[]) ?? [];
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
