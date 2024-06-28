@@ -97,6 +97,9 @@ export const columns: ColumnDef<Department>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => (
+      <span className="uppercase">{row.getValue("acronym")}</span>
+    ),
   },
   {
     accessorKey: "name",
