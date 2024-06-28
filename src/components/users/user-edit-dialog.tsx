@@ -43,11 +43,12 @@ const editFormSchema = z.object({
     })
     .min(4, {
       message: "Name must be more than 4 characters",
-    })
-    .optional(),
-  image: z.string().optional(),
-  email: z.string().email().optional(),
-  role: z.enum(["admin", "member"]).optional(),
+    }),
+  image: z.string(),
+  position: z.string(),
+  periods: z.array(z.string()),
+  email: z.string().email(),
+  role: z.enum(["admin", "member"]),
   departmentId: z.string().optional(),
 });
 
@@ -84,7 +85,7 @@ export function UserEditContent({
 }: {
   user: User;
   departments: Department[];
-  onEdit: (data?: User) => void;
+  onEdit: () => void;
 }) {
   const updateMutation = api.user.update.useMutation();
   const form = useForm<EditFormSchema>({
@@ -93,7 +94,9 @@ export function UserEditContent({
       name: user.name ?? "",
       image: user.image ?? "",
       email: user.email ?? "",
+      position: user.position ?? "",
       role: user.role,
+      periods: user.periods,
       departmentId: user.departmentId ?? undefined,
     },
   });
@@ -115,12 +118,15 @@ export function UserEditContent({
     });
 
     await mutationPromise.then((data) => {
-      onEdit(data);
+      onEdit();
+
       form.reset({
         name: data.name ?? "",
         email: data.email ?? "",
         role: data.role,
         image: data.image ?? "",
+        position: data.position ?? "",
+        periods: data.periods,
         departmentId: data.departmentId ?? undefined,
       });
     });

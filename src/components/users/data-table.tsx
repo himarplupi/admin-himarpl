@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, XIcon, Trash, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,17 +55,20 @@ import { usePathname, useRouter } from "next/navigation";
 
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
-    onDeleteRows?: () => Promise<void>;
+    onUpdateRows: () => Promise<void>;
+    onDeleteRows: () => Promise<void>;
+    departments: Department[];
   }
 }
 
 export function DataTableUsers({ session }: { session: Session }) {
   const pathname = usePathname();
-  const currentPeriod = pathname.split("/")[2] ?? "";
   const router = useRouter();
+  const currentPeriod = pathname.split("/")[2] ?? "";
+
+  const utils = api.useUtils();
 
   const users = api.user.byPeriod.useQuery({ period: currentPeriod });
-  const utils = api.useUtils();
 
   const departments =
     (api.department.getManySelect.useQuery({
@@ -109,10 +113,14 @@ export function DataTableUsers({ session }: { session: Session }) {
       rowSelection,
     },
     meta: {
+      onUpdateRows: async () => {
+        await utils.user.invalidate();
+      },
       onDeleteRows: async () => {
         await utils.user.invalidate();
         table.resetRowSelection();
       },
+      departments,
     },
   });
 
@@ -238,26 +246,37 @@ export function DataTableUsers({ session }: { session: Session }) {
             ))}
           </TableHeader>
           <TableBody ref={parent}>
-            {table.getRowModel().rows ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+
+            {table.getRowModel().rows.length < 1 && !users.isLoading && (
               <TableRow>
-                <TableCell colSpan={2} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {users.isLoading && (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="space-y-4 text-center"
+                >
+                  <Skeleton className="h-16 w-full rounded-md " />
                 </TableCell>
               </TableRow>
             )}

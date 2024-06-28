@@ -193,11 +193,11 @@ export const columns: ColumnDef<User>[] = [
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* <UserEditContent
+            <UserEditContent
               departments={table.options.meta?.departments ?? []}
               user={user}
-              onEdit={(data) => table.options.meta?.updateRow(data)}
-            /> */}
+              onEdit={() => table.options.meta?.onUpdateRows()}
+            />
           </UserEditWrapper>
 
           <UserDeleteAlertContent
