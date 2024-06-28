@@ -50,6 +50,7 @@ import type {
 import type { Department, User } from "@/components/users/types";
 import type { Session } from "next-auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { usePathname, useRouter } from "next/navigation";
 
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
@@ -58,7 +59,10 @@ declare module "@tanstack/table-core" {
 }
 
 export function DataTableUsers({ session }: { session: Session }) {
-  const [currentPeriod, setCurrentPeriod] = React.useState("2024");
+  const pathname = usePathname();
+  const currentPeriod = pathname.split("/")[2] ?? "";
+  const router = useRouter();
+
   const users = api.user.byPeriod.useQuery({ period: currentPeriod });
   const utils = api.useUtils();
 
@@ -164,7 +168,7 @@ export function DataTableUsers({ session }: { session: Session }) {
             <Select
               value={currentPeriod}
               onValueChange={(value) => {
-                setCurrentPeriod(value);
+                router.push(`/users/${value}`);
               }}
             >
               <SelectTrigger>

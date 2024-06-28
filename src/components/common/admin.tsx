@@ -127,8 +127,8 @@ export function Admin({
                     title: "Pengurus",
                     label: userQuery.data?.toString() ?? "",
                     icon: Users2,
-                    href: "/users",
-                    variant: pathname === "/users" ? "default" : "ghost",
+                    href: "/users/" + new Date().getFullYear(),
+                    variant: pathname.includes("/users") ? "default" : "ghost",
                   },
                   {
                     title: "Departemen",
