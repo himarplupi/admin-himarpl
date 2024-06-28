@@ -55,7 +55,7 @@ export const columns: ColumnDef<Department>[] = [
       const department = row.original;
 
       return (
-        <div className="relative h-14 w-14 overflow-hidden rounded-md">
+        <div className="relative h-24 w-24 overflow-hidden rounded-md">
           {department.image && (
             <Image
               src={department.image}
@@ -117,7 +117,7 @@ export const columns: ColumnDef<Department>[] = [
     accessorKey: "description",
     header: "Description",
     cell: ({ row }) => (
-      <p className="truncate">{row.getValue("description")}</p>
+      <p className="line-clamp-3 min-w-12">{row.getValue("description")}</p>
     ),
   },
   {
