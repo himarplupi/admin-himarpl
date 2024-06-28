@@ -85,9 +85,9 @@ export function UserCreateDialog({
     const mutationPromise = createMutation.mutateAsync(values);
 
     toast.promise(mutationPromise, {
-      loading: "Creating user...",
-      success: "User created successfully",
-      error: "Failed to create user",
+      loading: "Membuat user...",
+      success: "User berhasil dibuat",
+      error: "Gagal membuat user",
       duration: 3000,
     });
 

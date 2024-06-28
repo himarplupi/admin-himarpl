@@ -28,19 +28,21 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { columns } from "./columns";
-import { CreateDepartment } from "./create-department";
-import { DeleteAlertDialog } from "./delete-alert";
-import type { Department } from "@prisma/client";
+import { DepartmentCreateDialog } from "./department-create-dialog";
+import { DepartmentDeleteAlertDialog } from "./department-delete-alert";
 import type {
   VisibilityState,
   ColumnFiltersState,
   RowSelectionState,
   SortingState,
-  RowData,
 } from "@tanstack/table-core";
+import { api } from "@/trpc/react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-export function DataTableDepartments({ data }: { data: Department[] }) {
-  const [departments, setDepartments] = React.useState<Department[]>(data);
+export function DataTableDepartments() {
+  const utils = api.useUtils();
+  const departments = api.department.all.useQuery();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -48,21 +50,23 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const getRowIdSelection = React.useCallback(
-    () =>
-      departments
-        .filter((department, index) => {
-          if (rowSelection[index]) {
-            return department.id;
-          }
-        })
-        .map((department) => department.id),
-    [departments, rowSelection],
-  );
+
+  const [parent] = useAutoAnimate();
+
+  const getRowIdSelection = React.useCallback(() => {
+    if (!departments.data) return [];
+    return departments.data
+      .filter((department, index) => {
+        if (rowSelection[index]) {
+          return department.id;
+        }
+      })
+      .map((department) => department.id);
+  }, [departments, rowSelection]);
 
   const table = useReactTable({
     columns,
-    data: departments,
+    data: departments.data ?? [],
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -78,34 +82,25 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
       rowSelection,
     },
     meta: {
-      // deleteRows: (ids) => {
-      //   setDepartments((prevData) =>
-      //     prevData.filter((department) => !ids.includes(department.id)),
-      //   );
-      //   table.resetRowSelection();
-      // },
-      // updateRow: (newDepartment) => {
-      //   if (!newDepartment) return;
-      //   setDepartments((prevData) =>
-      //     prevData.map((prevDepartment) =>
-      //       prevDepartment.id === newDepartment.id
-      //         ? newDepartment
-      //         : prevDepartment,
-      //     ),
-      //   );
-      // },
+      onUpdateRows: async () => {
+        await utils.department.invalidate();
+      },
+      onDeleteRows: async () => {
+        await utils.department.invalidate();
+        table.resetRowSelection();
+      },
     },
   });
 
   return (
-    <div className="w-full">
+    <div>
       {/* If table row not selected show filter columns */}
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
-          <CreateDepartment
-            onCreate={(newData) =>
-              setDepartments((prevData) => [...prevData, newData])
-            }
+          <DepartmentCreateDialog
+            onCreate={async () => {
+              await utils.department.invalidate();
+            }}
           />
           <Input
             placeholder="Filter names..."
@@ -113,13 +108,13 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
             }
-            className="ml-4 max-w-sm"
+            className="ml-4 hidden max-w-sm sm:flex"
           />
 
           <div className="ml-auto flex gap-x-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="hidden sm:flex">
                   Columns <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -143,25 +138,6 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
           </div>
         </div>
       )}
@@ -184,20 +160,20 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
                 {table.getFilteredSelectedRowModel().rows.length} of{" "}
                 {table.getFilteredRowModel().rows.length} row(s) selected
               </div>
-              <DeleteAlertDialog
-                // onDelete={table.options.meta?.deleteRows}
+              <DepartmentDeleteAlertDialog
+                onDelete={table.options.meta?.onDeleteRows}
                 departmentIds={getRowIdSelection()}
               >
                 <Button variant="ghost" size="icon">
                   <Trash className="h-4 w-4" />
                 </Button>
-              </DeleteAlertDialog>
+              </DepartmentDeleteAlertDialog>
             </CardContent>
           </Card>
         </div>
       )}
 
-      <div className="rounded-md border">
+      <div className="w-[82vw] rounded-md border sm:w-[80vw] md:w-[85vw] lg:w-full">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -217,30 +193,38 @@ export function DataTableDepartments({ data }: { data: Department[] }) {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
+          <TableBody ref={parent}>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+
+            {table.getRowModel().rows.length < 1 && !departments.isLoading && (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
                   No results.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {departments.isLoading && (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="space-y-4 text-center"
+                >
+                  <Skeleton className="h-16 w-full rounded-md " />
                 </TableCell>
               </TableRow>
             )}

@@ -5,8 +5,6 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 
-import { revalidatePath } from "next/cache";
-
 export const userRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.user.count();

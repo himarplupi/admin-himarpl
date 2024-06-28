@@ -14,15 +14,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  DeleteAlertContent,
-  DeleteAlertTrigger,
-  DeleteAlertWrapper,
-} from "./delete-alert";
+  DepartmentDeleteAlertContent,
+  DepartmentDeleteAlertTrigger,
+  DepartmentDeleteAlertWrapper,
+} from "./department-delete-alert";
 import {
-  EditDepartmentWrapper,
-  EditDepartmentTrigger,
-  EditDepartmentContent,
-} from "./edit-department";
+  DepartmentEditContent,
+  DepartmentEditTrigger,
+  DepartmentEditWrapper,
+} from "./department-edit-dialog";
 import type { Department } from "@prisma/client";
 
 export const columns: ColumnDef<Department>[] = [
@@ -127,8 +127,8 @@ export const columns: ColumnDef<Department>[] = [
       const department = row.original;
 
       return (
-        <DeleteAlertWrapper>
-          <EditDepartmentWrapper>
+        <DepartmentDeleteAlertWrapper>
+          <DepartmentEditWrapper>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -146,32 +146,32 @@ export const columns: ColumnDef<Department>[] = [
                   Copy department ID
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <EditDepartmentTrigger>
+                <DepartmentEditTrigger>
                   <DropdownMenuItem className="gap-x-2">
                     <Pencil className="h-4 w-4" />
                     Edit department
                   </DropdownMenuItem>
-                </EditDepartmentTrigger>
-                <DeleteAlertTrigger>
+                </DepartmentEditTrigger>
+                <DepartmentDeleteAlertTrigger>
                   <DropdownMenuItem className="gap-x-2">
                     <Trash className="h-4 w-4" />
                     Delete department
                   </DropdownMenuItem>
-                </DeleteAlertTrigger>
+                </DepartmentDeleteAlertTrigger>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <EditDepartmentContent
+            <DepartmentEditContent
               department={department}
-              // onEdit={(data) => table.options.meta?.updateRow(data)}
+              onEdit={() => table.options.meta?.onUpdateRows()}
             />
-          </EditDepartmentWrapper>
+          </DepartmentEditWrapper>
 
-          <DeleteAlertContent
+          <DepartmentDeleteAlertContent
             departmentIds={[department.id]}
-            // onDelete={table.options.meta?.deleteRows}
+            onDelete={table.options.meta?.onDeleteRows}
           />
-        </DeleteAlertWrapper>
+        </DepartmentDeleteAlertWrapper>
       );
     },
   },

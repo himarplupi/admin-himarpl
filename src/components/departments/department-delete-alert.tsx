@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
-export function DeleteAlertDialog({
+export function DepartmentDeleteAlertDialog({
   departmentIds,
   children,
   onDelete,
@@ -26,17 +26,24 @@ export function DeleteAlertDialog({
 }) {
   return (
     <AlertDialog>
-      <DeleteAlertTrigger>{children}</DeleteAlertTrigger>
-      <DeleteAlertContent departmentIds={departmentIds} onDelete={onDelete} />
+      <DepartmentDeleteAlertTrigger>{children}</DepartmentDeleteAlertTrigger>
+      <DepartmentDeleteAlertContent
+        departmentIds={departmentIds}
+        onDelete={onDelete}
+      />
     </AlertDialog>
   );
 }
 
-export function DeleteAlertTrigger({ children }: { children: ReactNode }) {
+export function DepartmentDeleteAlertTrigger({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>;
 }
 
-export function DeleteAlertContent({
+export function DepartmentDeleteAlertContent({
   departmentIds,
   onDelete,
 }: {
@@ -78,6 +85,10 @@ export function DeleteAlertContent({
   );
 }
 
-export function DeleteAlertWrapper({ children }: { children: ReactNode }) {
+export function DepartmentDeleteAlertWrapper({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return <AlertDialog>{children}</AlertDialog>;
 }

@@ -4,9 +4,12 @@ import { useState, createContext, useContext } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Department } from "@prisma/client";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 const editFormSchema = z.object({
   name: z
@@ -68,7 +72,7 @@ const EditDepartmentContext = createContext<{
   setOpen: () => false,
 });
 
-export function EditDepartmentWrapper({
+export function DepartmentEditWrapper({
   children,
 }: {
   children: React.ReactNode;
@@ -84,7 +88,7 @@ export function EditDepartmentWrapper({
   );
 }
 
-export function EditDepartmentTrigger({
+export function DepartmentEditTrigger({
   children,
 }: {
   children: React.ReactNode;
@@ -92,14 +96,15 @@ export function EditDepartmentTrigger({
   return <DialogTrigger asChild>{children}</DialogTrigger>;
 }
 
-export function EditDepartmentContent({
+export function DepartmentEditContent({
   department,
   onEdit,
 }: {
   department: Department;
   onEdit?: (data?: Department) => void;
 }) {
-  const departmentMutation = api.department.put.useMutation();
+  const [parent] = useAutoAnimate();
+  const departmentMutation = api.department.update.useMutation();
   const form = useForm<EditFormSchema>({
     resolver: zodResolver(editFormSchema),
     defaultValues: {
@@ -110,6 +115,9 @@ export function EditDepartmentContent({
       image: department.image ?? "",
     },
   });
+  const [programsInput, setProgramsInput] = useState(department.programs);
+  const [programs, setPrograms] = useState(department.programs);
+
   const { setOpen } = useContext(EditDepartmentContext);
 
   const onSubmit = async (values: EditFormSchema) => {
@@ -130,12 +138,15 @@ export function EditDepartmentContent({
       }
     }
 
-    const mutationPromise = departmentMutation.mutateAsync(editedDepartment);
+    const mutationPromise = departmentMutation.mutateAsync({
+      ...editedDepartment,
+      programs,
+    });
 
     toast.promise(mutationPromise, {
-      loading: "Updating department...",
-      success: "Department updated successfully",
-      error: "Failed to update department",
+      loading: "Mengubah departemen...",
+      success: "Departemen berhasil diubah",
+      error: "Gagal mengubah departemen",
       duration: 3000,
     });
 
@@ -246,6 +257,52 @@ export function EditDepartmentContent({
                     </FormItem>
                   )}
                 />
+
+                <div className="space-y-2" ref={parent}>
+                  <Label>Program Kerja</Label>
+                  {programsInput.map((pInput, index) => {
+                    const key = `${index}_${pInput}`;
+                    return (
+                      <div key={key} className="flex gap-x-1">
+                        <Input
+                          value={programs[index]}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const newPrograms = [...programs];
+                            newPrograms[index] = value;
+                            setPrograms(newPrograms);
+                          }}
+                        />
+                        <Button
+                          disabled={index === 0}
+                          size="icon"
+                          variant="outline"
+                          type="button"
+                          onClick={() => {
+                            const newPrograms = [...programs];
+                            newPrograms.splice(index, 1);
+                            setPrograms(newPrograms);
+                            setProgramsInput(newPrograms);
+                          }}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    );
+                  })}
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    type="button"
+                    onClick={() => {
+                      setProgramsInput((prev) => [...prev, ""]);
+                      setPrograms((prev) => [...prev, ""]);
+                    }}
+                  >
+                    Tambah Program Kerja
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>

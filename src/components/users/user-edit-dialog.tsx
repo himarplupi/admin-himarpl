@@ -5,7 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -302,8 +302,8 @@ export function UserEditContent({
                     className="w-full"
                     type="button"
                     onClick={() => {
-                      setPeriodsInput([...periodsInput, ""]);
-                      setPeriods([...periods, ""]);
+                      setPeriodsInput((prev) => [...prev, ""]);
+                      setPeriods((prev) => [...prev, ""]);
                     }}
                   >
                     Tambah Tahun Periode

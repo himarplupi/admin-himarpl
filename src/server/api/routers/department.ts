@@ -5,11 +5,8 @@ export const departmentRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.department.count();
   }),
-  get: protectedProcedure.query(({ ctx }) => {
+  all: protectedProcedure.query(({ ctx }) => {
     return ctx.db.department.findMany();
-  }),
-  getMany: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.db.department.findMany();
   }),
   getManySelect: protectedProcedure
     .input(
@@ -26,30 +23,25 @@ export const departmentRouter = createTRPCRouter({
         select: { id: true, ...input },
       });
     }),
-  post: protectedProcedure
+  create: protectedProcedure
     .input(
       z.object({
         name: z.string(),
         description: z.string(),
         acronym: z.string(),
         image: z.string(),
+        programs: z.array(z.string()),
         type: z.enum(["BE", "DP"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
-
       return await ctx.db.department.create({
         data: {
           name: input.name,
           description: input.description,
           type: input.type,
           acronym: input.acronym,
+          programs: input.programs,
           image: input.image,
         },
       });
@@ -57,13 +49,6 @@ export const departmentRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
-
       return await ctx.db.department.delete({
         where: { id: input },
         select: { id: true },
@@ -72,41 +57,29 @@ export const departmentRouter = createTRPCRouter({
   deleteMany: protectedProcedure
     .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
-
       return await ctx.db.department.deleteMany({
         where: { id: { in: input } },
       });
     }),
-  put: protectedProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         name: z.string().optional(),
         description: z.string().optional(),
         acronym: z.string().optional(),
+        programs: z.array(z.string()).optional(),
         image: z.string().optional(),
         type: z.enum(["BE", "DP"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      await ctx.db.user.update({
-        where: { id: userId },
-        data: { lastLoginAt: new Date() },
-      });
-
       return await ctx.db.department.update({
         where: { id: input.id },
         data: {
           name: input.name,
           description: input.description,
+          programs: input.programs,
           type: input.type,
           acronym: input.acronym,
           image: input.image,

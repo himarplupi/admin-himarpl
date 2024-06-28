@@ -49,7 +49,6 @@ import type {
   RowData,
 } from "@tanstack/table-core";
 import type { Department, User } from "@/components/users/types";
-import type { Session } from "next-auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -57,11 +56,11 @@ declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
     onUpdateRows: () => Promise<void>;
     onDeleteRows: () => Promise<void>;
-    departments: Department[];
+    departments?: Department[];
   }
 }
 
-export function DataTableUsers({ session }: { session: Session }) {
+export function DataTableUsers() {
   const pathname = usePathname();
   const router = useRouter();
   const currentPeriod = pathname.split("/")[2] ?? "";

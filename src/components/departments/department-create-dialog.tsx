@@ -4,7 +4,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,8 +33,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import type { Department } from "@prisma/client";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 const createFormSchema = z.object({
   name: z
@@ -60,12 +61,9 @@ const createFormSchema = z.object({
 
 type CreateFormSchema = z.infer<typeof createFormSchema>;
 
-export function CreateDepartment({
-  onCreate,
-}: {
-  onCreate: (data: Department) => void;
-}) {
-  const departmentMutation = api.department.post.useMutation();
+export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
+  const [parent] = useAutoAnimate();
+  const departmentMutation = api.department.create.useMutation();
   const [open, setOpen] = useState(false);
   const form = useForm<CreateFormSchema>({
     resolver: zodResolver(createFormSchema),
@@ -77,20 +75,25 @@ export function CreateDepartment({
       image: "",
     },
   });
+  const [programsInput, setProgramsInput] = useState([""]);
+  const [programs, setPrograms] = useState([""]);
 
   const onSubmit = async (values: CreateFormSchema) => {
     setOpen(false);
 
-    const mutationPromise = departmentMutation.mutateAsync(values);
+    const mutationPromise = departmentMutation.mutateAsync({
+      ...values,
+      programs,
+    });
 
     toast.promise(mutationPromise, {
-      loading: "Creating department...",
-      success: "Department created successfully",
-      error: "Failed to create department",
+      loading: "Membuat departemen...",
+      success: "Departemen berhasil dibuat",
+      error: "Gagal membuat departemen",
       duration: 3000,
     });
 
-    await mutationPromise.then((data) => onCreate(data));
+    await mutationPromise.then(() => onCreate());
 
     form.reset();
   };
@@ -194,6 +197,52 @@ export function CreateDepartment({
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-2" ref={parent}>
+                    <Label>Program Kerja</Label>
+                    {programsInput.map((pInput, index) => {
+                      const key = `${index}_${pInput}`;
+                      return (
+                        <div key={key} className="flex gap-x-1">
+                          <Input
+                            value={programs[index]}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              const newPrograms = [...programs];
+                              newPrograms[index] = value;
+                              setPrograms(newPrograms);
+                            }}
+                          />
+                          <Button
+                            disabled={index === 0}
+                            size="icon"
+                            variant="outline"
+                            type="button"
+                            onClick={() => {
+                              const newPrograms = [...programs];
+                              newPrograms.splice(index, 1);
+                              setPrograms(newPrograms);
+                              setProgramsInput(newPrograms);
+                            }}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+                      );
+                    })}
+
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      type="button"
+                      onClick={() => {
+                        setProgramsInput((prev) => [...prev, ""]);
+                        setPrograms((prev) => [...prev, ""]);
+                      }}
+                    >
+                      Tambah Program Kerja
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>
