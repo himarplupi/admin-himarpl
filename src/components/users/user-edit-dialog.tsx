@@ -5,6 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Trash2, Plus } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Department, User } from "./types";
+import { Label } from "@/components/ui/label";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 const editFormSchema = z.object({
   name: z
@@ -46,7 +49,6 @@ const editFormSchema = z.object({
     }),
   image: z.string(),
   position: z.string(),
-  periods: z.array(z.string()),
   email: z.string().email(),
   role: z.enum(["admin", "member"]),
   departmentId: z.string().optional(),
@@ -87,6 +89,9 @@ export function UserEditContent({
   departments: Department[];
   onEdit: () => void;
 }) {
+  const [parent] = useAutoAnimate();
+  const [periodsInput, setPeriodsInput] = useState(user.periods ?? []);
+  const [periods, setPeriods] = useState(user.periods ?? []);
   const updateMutation = api.user.update.useMutation();
   const form = useForm<EditFormSchema>({
     resolver: zodResolver(editFormSchema),
@@ -96,7 +101,6 @@ export function UserEditContent({
       email: user.email ?? "",
       position: user.position ?? "",
       role: user.role,
-      periods: user.periods,
       departmentId: user.departmentId ?? undefined,
     },
   });
@@ -107,6 +111,7 @@ export function UserEditContent({
 
     const mutationPromise = updateMutation.mutateAsync({
       ...values,
+      periods,
       id: user.id,
     });
 
@@ -117,18 +122,8 @@ export function UserEditContent({
       duration: 3000,
     });
 
-    await mutationPromise.then((data) => {
+    await mutationPromise.then(() => {
       onEdit();
-
-      form.reset({
-        name: data.name ?? "",
-        email: data.email ?? "",
-        role: data.role,
-        image: data.image ?? "",
-        position: data.position ?? "",
-        periods: data.periods,
-        departmentId: data.departmentId ?? undefined,
-      });
     });
   };
 
@@ -173,13 +168,23 @@ export function UserEditContent({
                 <FormField
                   control={form.control}
                   name="email"
-                  disabled={user.accounts && user.accounts.length > 0}
+                  // disabled={user.accounts && user.accounts.length > 0}
+
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          readOnly={user.accounts && user.accounts.length > 0}
+                          {...field}
+                        />
                       </FormControl>
+                      {user.accounts && user.accounts.length > 0 && (
+                        <p className="text-sm text-gray-500">
+                          Email tidak bisa diubah karena user sudah aktivasi
+                          akun
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -216,7 +221,7 @@ export function UserEditContent({
                 <FormField
                   control={form.control}
                   name="departmentId"
-                  disabled={departments.length === 0}
+                  disabled={departments.length < 1}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Departemen</FormLabel>
@@ -244,11 +249,75 @@ export function UserEditContent({
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="position"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jabatan</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-2" ref={parent}>
+                  <Label>Tahun Periode</Label>
+                  {periodsInput.map((pInput, index) => {
+                    const key = `${index}_${pInput}`;
+                    return (
+                      <div key={key} className="flex gap-x-1">
+                        <Input
+                          value={periods[index]}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const newPeriods = [...periods];
+                            newPeriods[index] = value;
+                            setPeriods(newPeriods);
+                          }}
+                        />
+                        <Button
+                          disabled={index === 0}
+                          size="icon"
+                          variant="outline"
+                          type="button"
+                          onClick={() => {
+                            const newPeriods = [...periods];
+                            newPeriods.splice(index, 1);
+                            setPeriods(newPeriods);
+                            setPeriodsInput(newPeriods);
+                          }}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    );
+                  })}
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    type="button"
+                    onClick={() => {
+                      setPeriodsInput([...periodsInput, ""]);
+                      setPeriods([...periods, ""]);
+                    }}
+                  >
+                    Tambah Tahun Periode
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setOpen(false)}
+            >
               Batalkan
             </Button>
             <Button form="edit-user-form" type="submit">
