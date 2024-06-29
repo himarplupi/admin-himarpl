@@ -161,7 +161,10 @@ export function NavDesktop({
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="w-full">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={session?.user.image ?? ""} />
+                        <AvatarImage
+                          className="scale-125 object-cover object-center"
+                          src={session?.user.image ?? ""}
+                        />
                         <AvatarFallback>
                           {abbreviation(session?.user.name)}
                         </AvatarFallback>

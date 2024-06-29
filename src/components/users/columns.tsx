@@ -58,7 +58,11 @@ export const columns: ColumnDef<User>[] = [
       return (
         <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-md">
           <Avatar>
-            <AvatarImage src={user?.image ?? ""} alt={user?.name ?? ""} />
+            <AvatarImage
+              className="scale-125 object-cover object-center"
+              src={user?.image ?? ""}
+              alt={user?.name ?? ""}
+            />
             <AvatarFallback>{abbreviation(user.name)}</AvatarFallback>
           </Avatar>
         </div>
