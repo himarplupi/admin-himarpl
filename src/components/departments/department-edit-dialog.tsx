@@ -35,10 +35,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Department } from "@prisma/client";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+
+import { ReactLenis } from "lenis/react";
 
 const editFormSchema = z.object({
   name: z
@@ -166,7 +167,7 @@ export function DepartmentEditContent({
 
   return (
     <DialogContent className="max-h-screen p-0 sm:max-w-[512px]">
-      <ScrollArea className="max-h-screen">
+      <ReactLenis className="max-h-screen overflow-y-auto">
         <div className="p-6">
           <DialogHeader>
             <DialogTitle>Edit Department</DialogTitle>
@@ -315,7 +316,7 @@ export function DepartmentEditContent({
             </Button>
           </DialogFooter>
         </div>
-      </ScrollArea>
+      </ReactLenis>
     </DialogContent>
   );
 }

@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
 import type { Department, User } from "./types";
 
@@ -106,7 +106,7 @@ export function UserCreateDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen p-0 sm:max-w-[512px]">
-        <ScrollArea className="max-h-screen">
+        <ReactLenis className="max-h-screen overflow-y-auto">
           <div className="p-6">
             <DialogHeader>
               <DialogTitle>New User</DialogTitle>
@@ -268,7 +268,7 @@ export function UserCreateDialog({
               </Button>
             </DialogFooter>
           </div>
-        </ScrollArea>
+        </ReactLenis>
       </DialogContent>
     </Dialog>
   );

@@ -32,10 +32,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+
+import { ReactLenis } from "lenis/react";
 
 const createFormSchema = z.object({
   name: z
@@ -106,7 +107,7 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen p-0 sm:max-w-[512px]">
-        <ScrollArea className="max-h-screen">
+        <ReactLenis className="max-h-screen overflow-y-auto">
           <div className="p-6">
             <DialogHeader>
               <DialogTitle>New Department</DialogTitle>
@@ -252,7 +253,7 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
               </Button>
             </DialogFooter>
           </div>
-        </ScrollArea>
+        </ReactLenis>
       </DialogContent>
     </Dialog>
   );
