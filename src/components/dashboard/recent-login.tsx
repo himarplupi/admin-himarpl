@@ -17,7 +17,11 @@ export function RecentLogin({
       {data.map((user) => (
         <div key={user.id} className="flex items-center">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="/avatars/01.png" alt="Avatar" />
+            <AvatarImage
+              className="scale-125 object-cover object-center"
+              src={user.image ?? "/undefined"}
+              alt="Avatar"
+            />
             <AvatarFallback>{abbreviation(user.name)}</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
