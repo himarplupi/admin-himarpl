@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { ReactLenis } from "lenis/react";
 
 interface DashboardProps {
   session: Session | null;
@@ -196,7 +197,9 @@ export function NavDesktop({
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={defaultLayout[1]}>
-          <ScrollArea className="h-screen">{children}</ScrollArea>
+          <ReactLenis className="h-screen overflow-y-auto">
+            {children}
+          </ReactLenis>
         </ResizablePanel>
       </ResizablePanelGroup>
     </TooltipProvider>

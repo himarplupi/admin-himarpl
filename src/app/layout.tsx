@@ -5,10 +5,10 @@ import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NavDesktop } from "@/components/common/nav-desktop";
 import { NavMobile } from "@/components/common/nav-mobile";
+import { ReactLenis } from "@/components/react-lenis";
 
 import { getServerAuthSession } from "@/server/auth";
 
@@ -95,14 +95,14 @@ export default async function RootLayout({
           fontSerif.variable,
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ScrollArea className="h-screen">
-            <TRPCReactProvider>
+        <TRPCReactProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ReactLenis>
               <div className="hidden sm:block">
                 <NavDesktop
                   session={session}
@@ -117,11 +117,11 @@ export default async function RootLayout({
               <div className="sm:hidden">
                 <NavMobile session={session}>{children}</NavMobile>
               </div>
-            </TRPCReactProvider>
+            </ReactLenis>
 
             <Toaster />
-          </ScrollArea>
-        </ThemeProvider>
+          </ThemeProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );
