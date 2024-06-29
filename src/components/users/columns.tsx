@@ -153,7 +153,13 @@ export const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const department = row.original.department;
-      return <div className="uppercase">{department?.acronym}</div>;
+      if (!department) return null;
+
+      return (
+        <div className="uppercase">
+          {department?.acronym} {`(${department?.type})`}
+        </div>
+      );
     },
   },
   {

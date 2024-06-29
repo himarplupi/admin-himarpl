@@ -24,6 +24,7 @@ export const userRouter = createTRPCRouter({
           department: {
             select: {
               acronym: true,
+              type: true,
             },
           },
           accounts: {

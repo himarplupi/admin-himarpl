@@ -34,6 +34,7 @@ const user = z.object({
     .object({
       id: z.string(),
       acronym: z.string(),
+      type: z.enum(["BE", "DP"]),
     })
     .optional(),
 });
