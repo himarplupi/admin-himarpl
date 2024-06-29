@@ -8,7 +8,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NavDesktop } from "@/components/common/nav-desktop";
 import { NavMobile } from "@/components/common/nav-mobile";
-import { ReactLenis } from "@/components/react-lenis";
 
 import { getServerAuthSession } from "@/server/auth";
 
@@ -102,22 +101,20 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ReactLenis>
-              <div className="hidden sm:block">
-                <NavDesktop
-                  session={session}
-                  defaultLayout={defaultLayout}
-                  defaultCollapsed={defaultCollapsed}
-                  navCollapsedSize={4}
-                >
-                  {children}
-                </NavDesktop>
-              </div>
+            <div className="hidden sm:block">
+              <NavDesktop
+                session={session}
+                defaultLayout={defaultLayout}
+                defaultCollapsed={defaultCollapsed}
+                navCollapsedSize={4}
+              >
+                {children}
+              </NavDesktop>
+            </div>
 
-              <div className="sm:hidden">
-                <NavMobile session={session}>{children}</NavMobile>
-              </div>
-            </ReactLenis>
+            <div className="sm:hidden">
+              <NavMobile session={session}>{children}</NavMobile>
+            </div>
 
             <Toaster />
           </ThemeProvider>

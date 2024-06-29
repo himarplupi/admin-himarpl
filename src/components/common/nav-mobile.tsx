@@ -17,7 +17,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { abbreviation } from "@/lib/utils";
 import { signOut } from "next-auth/react";
-import { Session } from "next-auth";
+import type { Session } from "next-auth";
+import ReactLenis from "lenis/react";
 
 const hideOnRoutes = ["/login"];
 
@@ -110,9 +111,11 @@ export function NavMobile({
           </SheetContent>
         </Sheet>
       </nav>
-      <div className="mt-10">{children}</div>
+      <div className="mt-10">
+        <ReactLenis className="h-screen overflow-y-auto">{children}</ReactLenis>
+      </div>
     </>
   ) : (
-    children
+    <ReactLenis className="h-screen overflow-y-auto">children</ReactLenis>
   );
 }
