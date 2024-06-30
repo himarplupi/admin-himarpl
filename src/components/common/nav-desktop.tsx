@@ -204,6 +204,6 @@ export function NavDesktop({
       </ResizablePanelGroup>
     </TooltipProvider>
   ) : (
-    <ReactLenis className="h-screen overflow-y-auto">children</ReactLenis>
+    <ReactLenis className="h-screen overflow-y-auto">{children}</ReactLenis>
   );
 }

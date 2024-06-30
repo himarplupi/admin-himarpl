@@ -116,6 +116,6 @@ export function NavMobile({
       </div>
     </>
   ) : (
-    <ReactLenis className="h-screen overflow-y-auto">children</ReactLenis>
+    <ReactLenis className="h-screen overflow-y-auto">{children}</ReactLenis>
   );
 }
