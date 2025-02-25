@@ -15,13 +15,13 @@ export const userRouter = createTRPCRouter({
   byPeriod: protectedProcedure
     .input(
       z.object({
-        period: z.string(),
+        periodYear: z.number(),
       }),
     )
     .query(({ ctx, input }) => {
       return ctx.db.user.findMany({
         include: {
-          department: {
+          departments: {
             select: {
               acronym: true,
               type: true,
@@ -34,7 +34,11 @@ export const userRouter = createTRPCRouter({
           },
         },
         where: {
-          periods: { has: input.period },
+          periods: {
+            some: {
+              year: input.periodYear,
+            },
+          },
         },
       });
     }),
@@ -57,18 +61,37 @@ export const userRouter = createTRPCRouter({
         name: z.string(),
         email: z.string().email(),
         image: z.string(),
-        position: z.string(),
-        periods: z.array(z.string()),
         role: z.enum(["admin", "member"]),
-        departmentId: z.string().optional(),
+        positionIds: z.array(z.string()),
+        periodYears: z.array(z.number()),
+        departmentIds: z.array(z.string()),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       input.email = input.email.toLowerCase();
-      input.position = input.position.toLowerCase();
 
       return await ctx.db.user.create({
-        data: input,
+        data: {
+          name: input.name,
+          email: input.email,
+          image: input.image,
+          role: input.role,
+          periods: {
+            connect: input.periodYears.map((year) => ({
+              year,
+            })),
+          },
+          positions: {
+            connect: input.positionIds.map((id) => ({
+              id,
+            })),
+          },
+          departments: {
+            connect: input.departmentIds.map((id) => ({
+              id,
+            })),
+          },
+        },
       });
     }),
   update: protectedProcedure
@@ -78,23 +101,53 @@ export const userRouter = createTRPCRouter({
         name: z.string().optional(),
         email: z.string().email().optional(),
         image: z.string().optional(),
-        periods: z.array(z.string()).optional(),
-        position: z.string().optional(),
         role: z.enum(["admin", "member"]).optional(),
-        departmentId: z.string().optional(),
+        positionIds: z.array(z.string()).optional(),
+        periodYears: z.array(z.number()).optional(),
+        departmentIds: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const currentUser = await ctx.db.user.findFirst({
+        where: { id: input.id },
+        include: {
+          positions: true,
+          periods: true,
+          departments: true,
+        },
+      });
+
       return await ctx.db.user.update({
         where: { id: input.id },
         data: {
           name: input.name,
           email: input.email,
           image: input.image,
-          periods: input.periods,
-          position: input.position,
           role: input.role,
-          departmentId: input.departmentId,
+          periods: {
+            disconnect: currentUser?.periods.map((period) => ({
+              year: period.year,
+            })),
+            connect: input.periodYears?.map((year) => ({
+              year,
+            })),
+          },
+          positions: {
+            disconnect: currentUser?.positions.map((position) => ({
+              id: position.id,
+            })),
+            connect: input.positionIds?.map((id) => ({
+              id,
+            })),
+          },
+          departments: {
+            disconnect: currentUser?.departments.map((department) => ({
+              id: department.id,
+            })),
+            connect: input.departmentIds?.map((id) => ({
+              id,
+            })),
+          },
         },
       });
     }),

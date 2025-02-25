@@ -31,6 +31,7 @@ export const departmentRouter = createTRPCRouter({
         acronym: z.string(),
         image: z.string(),
         programs: z.array(z.string()),
+        periodYear: z.number(),
         type: z.enum(["BE", "DP"]),
       }),
     )
@@ -41,7 +42,14 @@ export const departmentRouter = createTRPCRouter({
           description: input.description,
           type: input.type,
           acronym: input.acronym,
-          programs: input.programs,
+          periodYear: input.periodYear,
+          programs: {
+            createMany: {
+              data: input.programs.map((program) => ({
+                content: program,
+              })),
+            },
+          },
           image: input.image,
         },
       });
@@ -70,6 +78,7 @@ export const departmentRouter = createTRPCRouter({
         acronym: z.string().optional(),
         programs: z.array(z.string()).optional(),
         image: z.string().optional(),
+        periodYear: z.number().optional(),
         type: z.enum(["BE", "DP"]).optional(),
       }),
     )
@@ -79,10 +88,18 @@ export const departmentRouter = createTRPCRouter({
         data: {
           name: input.name,
           description: input.description,
-          programs: input.programs,
+          periodYear: input.periodYear,
           type: input.type,
           acronym: input.acronym,
           image: input.image,
+          programs: input.programs && {
+            deleteMany: {},
+            createMany: {
+              data: input.programs?.map((program) => ({
+                content: program,
+              })),
+            },
+          },
         },
       });
     }),
