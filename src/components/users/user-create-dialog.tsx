@@ -44,6 +44,7 @@ import { Input } from "@/components/ui/input";
 import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
 import type { User } from "@prisma/client";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 const createFormSchema = z.object({
   name: z
@@ -58,8 +59,8 @@ const createFormSchema = z.object({
   email: z.string().email(),
   role: z.enum(["admin", "member"]),
   periodYears: z.array(z.number()),
-  departmentId: z.string().optional(),
-  positionId: z.string().optional(),
+  departmentIds: z.array(z.string()),
+  positionIds: z.array(z.string()),
 });
 
 type CreateFormSchema = z.infer<typeof createFormSchema>;
@@ -69,6 +70,7 @@ export function UserCreateDialog({
 }: {
   onCreate: (data: User) => void;
 }) {
+  const [parent] = useAutoAnimate();
   const periods = api.period.all.useQuery().data ?? [];
   const positions = api.position.all.useQuery().data ?? [];
   const departments = api.department.all.useQuery().data ?? [];
@@ -81,11 +83,13 @@ export function UserCreateDialog({
       image: "",
       role: "member",
       email: "",
-      periodYears: [],
-      departmentId: undefined,
-      positionId: undefined,
+      periodYears: [new Date().getFullYear()],
+      departmentIds: [],
+      positionIds: [],
     },
   });
+
+  const [selectedPeriods] = form.watch(["periodYears"]);
 
   const onSubmit = async (values: CreateFormSchema) => {
     setOpen(false);
@@ -96,8 +100,8 @@ export function UserCreateDialog({
       email: values.email,
       role: values.role,
       periodYears: values.periodYears,
-      departmentIds: values.departmentId ? [values.departmentId] : undefined,
-      positionIds: values.positionId ? [values.positionId] : undefined,
+      departmentIds: values.departmentIds,
+      positionIds: values.positionIds,
     });
 
     toast.promise(mutationPromise, {
@@ -130,7 +134,7 @@ export function UserCreateDialog({
                 onSubmit={form.handleSubmit(onSubmit)}
                 id="create-user-form"
               >
-                <div className="grid gap-4 py-6">
+                <div className="grid gap-4 py-6" ref={parent}>
                   <FormField
                     control={form.control}
                     name="role"
@@ -256,97 +260,136 @@ export function UserCreateDialog({
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="departmentId"
-                    disabled={departments.length === 0}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Departemen</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih departemen..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel className="uppercase">
-                                Badan Eksekutif
-                              </SelectLabel>
-                              {departments
-                                .filter(
-                                  (department) => department.type === "BE",
-                                )
-                                .map((department) => (
+                  {selectedPeriods.map((periodYear, index) => (
+                    <div key={periodYear.toString()} className="my-3 space-y-3">
+                      <h4 className="mb-4 text-xl font-medium leading-none tracking-tight">{`Periode ${periodYear}`}</h4>
+
+                      <FormField
+                        control={form.control}
+                        name="departmentIds"
+                        disabled={
+                          departments.filter(
+                            (department) =>
+                              department.periodYear === periodYear,
+                          ).length === 0
+                        }
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Departemen</FormLabel>
+                            <Select
+                              defaultValue={field.value[index]}
+                              onValueChange={(newValue) => {
+                                field.onChange(
+                                  field.value.map((value, i) => {
+                                    if (i === index) {
+                                      return newValue;
+                                    }
+
+                                    return value;
+                                  }),
+                                );
+                              }}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Pilih departemen..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectGroup>
+                                  <SelectLabel className="uppercase">
+                                    Badan Eksekutif
+                                  </SelectLabel>
+                                  {departments
+                                    .filter(
+                                      (department) =>
+                                        department.type === "BE" &&
+                                        department.periodYear === periodYear,
+                                    )
+                                    .map((department) => (
+                                      <SelectItem
+                                        key={department.id}
+                                        value={department.id}
+                                        className="uppercase"
+                                      >
+                                        {department.acronym} (
+                                        {department.periodYear})
+                                      </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                                <SelectGroup>
+                                  <SelectLabel className="uppercase">
+                                    Dewan Perwakilan
+                                  </SelectLabel>
+                                  {departments
+                                    .filter(
+                                      (department) =>
+                                        department.type === "DP" &&
+                                        department.periodYear === periodYear,
+                                    )
+                                    .map((department) => (
+                                      <SelectItem
+                                        key={department.id}
+                                        value={department.id}
+                                        className="uppercase"
+                                      >
+                                        {department.acronym} (
+                                        {department.periodYear})
+                                      </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="positionIds"
+                        disabled={positions.length === 0}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Posisi</FormLabel>
+                            <Select
+                              onValueChange={(newValue) => {
+                                field.onChange(
+                                  field.value.map((value, i) => {
+                                    if (i === index) {
+                                      return newValue;
+                                    }
+
+                                    return value;
+                                  }),
+                                );
+                              }}
+                              defaultValue={field.value[index]}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Pilih posisi..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {positions.map((position) => (
                                   <SelectItem
-                                    key={department.id}
-                                    value={department.id}
-                                    className="uppercase"
+                                    key={position.id}
+                                    value={position.id}
+                                    className="capitalize"
                                   >
-                                    {department.acronym}
+                                    {position.name}
                                   </SelectItem>
                                 ))}
-                            </SelectGroup>
-                            <SelectGroup>
-                              <SelectLabel className="uppercase">
-                                Dewan Perwakilan
-                              </SelectLabel>
-                              {departments
-                                .filter(
-                                  (department) => department.type === "DP",
-                                )
-                                .map((department) => (
-                                  <SelectItem
-                                    key={department.id}
-                                    value={department.id}
-                                    className="uppercase"
-                                  >
-                                    {department.acronym}
-                                  </SelectItem>
-                                ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="positionId"
-                    disabled={positions.length === 0}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Posisi</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih posisi..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {positions.map((position) => (
-                              <SelectItem
-                                key={position.id}
-                                value={position.id}
-                                className="capitalize"
-                              >
-                                {position.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  ))}
                 </div>
               </form>
             </Form>

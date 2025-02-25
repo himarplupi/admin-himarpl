@@ -36,7 +36,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
-import type { Department, User } from "./types";
+import type { Department, User } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
@@ -50,10 +50,11 @@ const editFormSchema = z.object({
       message: "Name must be more than 4 characters",
     }),
   image: z.string(),
-  position: z.string(),
   email: z.string().email(),
   role: z.enum(["admin", "member"]),
+  periodYears: z.array(z.number()),
   departmentId: z.string().optional(),
+  positionId: z.string().optional(),
 });
 
 type EditFormSchema = z.infer<typeof editFormSchema>;
@@ -91,9 +92,7 @@ export function UserEditContent({
   departments: Department[];
   onEdit: () => void;
 }) {
-  const [parent] = useAutoAnimate();
-  const [periodsInput, setPeriodsInput] = useState(user.periods ?? []);
-  const [periods, setPeriods] = useState(user.periods ?? []);
+  return null;
   const updateMutation = api.user.update.useMutation();
   const form = useForm<EditFormSchema>({
     resolver: zodResolver(editFormSchema),
@@ -101,9 +100,8 @@ export function UserEditContent({
       name: user.name ?? "",
       image: user.image ?? "",
       email: user.email ?? "",
-      position: user.position ?? "",
       role: user.role,
-      departmentId: user.departmentId ?? undefined,
+      departmentId: user.departmentId,
     },
   });
   const { setOpen } = useContext(EditUserContext);
