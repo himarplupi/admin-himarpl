@@ -10,7 +10,18 @@ export const userRouter = createTRPCRouter({
     return await ctx.db.user.count();
   }),
   all: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.user.findMany();
+    return ctx.db.user.findMany({
+      include: {
+        departments: true,
+        positions: true,
+        periods: true,
+        accounts: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   }),
   byPeriod: protectedProcedure
     .input(

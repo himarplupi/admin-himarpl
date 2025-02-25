@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Plus } from "lucide-react";
@@ -43,27 +42,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
-import type { User } from "@prisma/client";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-
-const createFormSchema = z.object({
-  name: z
-    .string()
-    .max(255, {
-      message: "Name must be less than 255 characters",
-    })
-    .min(4, {
-      message: "Name must be more than 4 characters",
-    }),
-  image: z.string(),
-  email: z.string().email(),
-  role: z.enum(["admin", "member"]),
-  periodYears: z.array(z.number()),
-  departmentIds: z.array(z.string()),
-  positionIds: z.array(z.string()),
-});
-
-type CreateFormSchema = z.infer<typeof createFormSchema>;
+import type { User } from "@prisma/client";
+import { type UserFormSchema, userFormSchema } from "./user-form-schema";
 
 export function UserCreateDialog({
   onCreate,
@@ -76,8 +57,8 @@ export function UserCreateDialog({
   const departments = api.department.all.useQuery().data ?? [];
   const createMutation = api.user.create.useMutation();
   const [open, setOpen] = useState(false);
-  const form = useForm<CreateFormSchema>({
-    resolver: zodResolver(createFormSchema),
+  const form = useForm<UserFormSchema>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
       image: "",
@@ -91,7 +72,7 @@ export function UserCreateDialog({
 
   const [selectedPeriods] = form.watch(["periodYears"]);
 
-  const onSubmit = async (values: CreateFormSchema) => {
+  const onSubmit = async (values: UserFormSchema) => {
     setOpen(false);
 
     const mutationPromise = createMutation.mutateAsync({

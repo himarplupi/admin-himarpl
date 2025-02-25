@@ -39,9 +39,8 @@ import type {
   SortingState,
   RowData,
 } from "@tanstack/table-core";
-import type { Department, User } from "@prisma/client";
+import type { Department } from "@prisma/client";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { usePathname } from "next/navigation";
 
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {

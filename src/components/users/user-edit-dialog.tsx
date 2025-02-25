@@ -2,10 +2,8 @@
 
 import { useState, createContext, useContext } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Trash2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +14,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -36,28 +42,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
-import type { Department, User } from "@prisma/client";
-import { Label } from "@/components/ui/label";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-
-const editFormSchema = z.object({
-  name: z
-    .string()
-    .max(255, {
-      message: "Name must be less than 255 characters",
-    })
-    .min(4, {
-      message: "Name must be more than 4 characters",
-    }),
-  image: z.string(),
-  email: z.string().email(),
-  role: z.enum(["admin", "member"]),
-  periodYears: z.array(z.number()),
-  departmentId: z.string().optional(),
-  positionId: z.string().optional(),
-});
-
-type EditFormSchema = z.infer<typeof editFormSchema>;
+import { type UserFormSchema, userFormSchema } from "./user-form-schema";
+import type { User } from "./user-types";
 
 const EditUserContext = createContext<{
   open: boolean;
@@ -85,33 +72,36 @@ export function UserEditTrigger({ children }: { children: React.ReactNode }) {
 
 export function UserEditContent({
   user,
-  departments,
   onEdit,
 }: {
   user: User;
-  departments: Department[];
   onEdit: () => void;
 }) {
-  return null;
+  const [parent] = useAutoAnimate();
+  const periods = api.period.all.useQuery().data ?? [];
+  const positions = api.position.all.useQuery().data ?? [];
+  const departments = api.department.all.useQuery().data ?? [];
   const updateMutation = api.user.update.useMutation();
-  const form = useForm<EditFormSchema>({
-    resolver: zodResolver(editFormSchema),
+  const form = useForm<UserFormSchema>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: user.name ?? "",
       image: user.image ?? "",
       email: user.email ?? "",
-      role: user.role,
-      departmentId: user.departmentId,
+      role: user.role as "member" | "admin",
+      periodYears: user.periods?.map((period) => period.year),
+      departmentIds: user.departments?.map((department) => department.id),
+      positionIds: user.positions?.map((position) => position.id),
     },
   });
   const { setOpen } = useContext(EditUserContext);
+  const [selectedPeriods] = form.watch(["periodYears"]);
 
-  const onSubmit = async (values: EditFormSchema) => {
+  const onSubmit = async (values: UserFormSchema) => {
     setOpen(false);
 
     const mutationPromise = updateMutation.mutateAsync({
       ...values,
-      periods,
       id: user.id,
     });
 
@@ -136,7 +126,7 @@ export function UserEditContent({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} id="edit-user-form">
-              <div className="grid gap-4 py-6">
+              <div className="grid gap-4 py-6" ref={parent}>
                 <FormField
                   control={form.control}
                   name="role"
@@ -220,119 +210,183 @@ export function UserEditContent({
 
                 <FormField
                   control={form.control}
-                  name="departmentId"
-                  disabled={departments.length < 1}
+                  name="periodYears"
+                  disabled={periods.length === 0}
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Departemen</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih departemen..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel className="uppercase">
-                              Badan Eksekutif
-                            </SelectLabel>
-                            {departments
-                              .filter((department) => department.type === "BE")
-                              .map((department) => (
-                                <SelectItem
-                                  key={department.id}
-                                  value={department.id}
-                                  className="uppercase"
-                                >
-                                  {department.acronym}
-                                </SelectItem>
-                              ))}
-                          </SelectGroup>
-                          <SelectGroup>
-                            <SelectLabel className="uppercase">
-                              Dewan Perwakilan
-                            </SelectLabel>
-                            {departments
-                              .filter((department) => department.type === "DP")
-                              .map((department) => (
-                                <SelectItem
-                                  key={department.id}
-                                  value={department.id}
-                                  className="uppercase"
-                                >
-                                  {department.acronym}
-                                </SelectItem>
-                              ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Periode</FormLabel>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <FormControl>
+                            <Button variant="outline" className="justify-start">
+                              {field.value.length === 0
+                                ? "Pilih periode..."
+                                : field.value.join(", ")}
+                            </Button>
+                          </FormControl>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuLabel>Periode</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+
+                          {periods.map((period) => (
+                            <DropdownMenuCheckboxItem
+                              className="capitalize"
+                              key={period.id}
+                              checked={field.value.includes(period.year)}
+                              onCheckedChange={() => {
+                                if (field.value.includes(period.year)) {
+                                  field.onChange(
+                                    field.value.filter(
+                                      (value) => value !== period.year,
+                                    ),
+                                  );
+                                } else {
+                                  field.onChange([...field.value, period.year]);
+                                }
+                              }}
+                            >
+                              {period.year} ({period.name})
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="position"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jabatan</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {selectedPeriods.map((periodYear, index) => (
+                  <div key={periodYear.toString()} className="my-3 space-y-3">
+                    <h4 className="mb-4 text-xl font-medium leading-none tracking-tight">{`Periode ${periodYear}`}</h4>
 
-                <div className="space-y-2" ref={parent}>
-                  <Label>Tahun Periode</Label>
-                  {periodsInput.map((pInput, index) => {
-                    const key = `${index}_${pInput}`;
-                    return (
-                      <div key={key} className="flex gap-x-1">
-                        <Input
-                          value={periods[index]}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            const newPeriods = [...periods];
-                            newPeriods[index] = value;
-                            setPeriods(newPeriods);
-                          }}
-                        />
-                        <Button
-                          disabled={index === 0}
-                          size="icon"
-                          variant="outline"
-                          type="button"
-                          onClick={() => {
-                            const newPeriods = [...periods];
-                            newPeriods.splice(index, 1);
-                            setPeriods(newPeriods);
-                            setPeriodsInput(newPeriods);
-                          }}
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    );
-                  })}
+                    <FormField
+                      control={form.control}
+                      name="departmentIds"
+                      disabled={
+                        departments.filter(
+                          (department) => department.periodYear === periodYear,
+                        ).length === 0
+                      }
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Departemen</FormLabel>
+                          <Select
+                            defaultValue={field.value[index]}
+                            onValueChange={(newValue) => {
+                              field.onChange(
+                                field.value.map((value, i) => {
+                                  if (i === index) {
+                                    return newValue;
+                                  }
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    type="button"
-                    onClick={() => {
-                      setPeriodsInput((prev) => [...prev, ""]);
-                      setPeriods((prev) => [...prev, ""]);
-                    }}
-                  >
-                    Tambah Tahun Periode
-                  </Button>
-                </div>
+                                  return value;
+                                }),
+                              );
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih departemen..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel className="uppercase">
+                                  Badan Eksekutif
+                                </SelectLabel>
+                                {departments
+                                  .filter(
+                                    (department) =>
+                                      department.type === "BE" &&
+                                      department.periodYear === periodYear,
+                                  )
+                                  .map((department) => (
+                                    <SelectItem
+                                      key={department.id}
+                                      value={department.id}
+                                      className="uppercase"
+                                    >
+                                      {department.acronym} (
+                                      {department.periodYear})
+                                    </SelectItem>
+                                  ))}
+                              </SelectGroup>
+                              <SelectGroup>
+                                <SelectLabel className="uppercase">
+                                  Dewan Perwakilan
+                                </SelectLabel>
+                                {departments
+                                  .filter(
+                                    (department) =>
+                                      department.type === "DP" &&
+                                      department.periodYear === periodYear,
+                                  )
+                                  .map((department) => (
+                                    <SelectItem
+                                      key={department.id}
+                                      value={department.id}
+                                      className="uppercase"
+                                    >
+                                      {department.acronym} (
+                                      {department.periodYear})
+                                    </SelectItem>
+                                  ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="positionIds"
+                      disabled={positions.length === 0}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Posisi</FormLabel>
+                          <Select
+                            onValueChange={(newValue) => {
+                              field.onChange(
+                                field.value.map((value, i) => {
+                                  if (i === index) {
+                                    return newValue;
+                                  }
+
+                                  return value;
+                                }),
+                              );
+                            }}
+                            defaultValue={field.value[index]}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih posisi..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {positions.map((position) => (
+                                <SelectItem
+                                  key={position.id}
+                                  value={position.id}
+                                  className="capitalize"
+                                >
+                                  {position.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
               </div>
             </form>
           </Form>

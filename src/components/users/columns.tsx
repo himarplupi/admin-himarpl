@@ -24,7 +24,7 @@ import {
   UserEditWrapper,
 } from "./user-edit-dialog";
 import { abbreviation } from "@/lib/utils";
-import type { User } from "./types";
+import type { User } from "./user-types";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -107,21 +107,6 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "role",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Role
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="capitalize">{row.getValue("role")}</div>,
-  },
-  {
     accessorKey: "position",
     header: ({ column }) => {
       return (
@@ -129,17 +114,20 @@ export const columns: ColumnDef<User>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Jabatan
+          Posisi
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("position")}</div>
-    ),
+    cell: ({ row }) => {
+      const positions = row.original.positions;
+      if (positions.length === 0) return null;
+
+      return <div className="capitalize">{positions.at(-1)?.name}</div>;
+    },
   },
   {
-    accessorKey: "departmentId",
+    accessorKey: "departments",
     header: ({ column }) => {
       return (
         <Button
@@ -152,12 +140,36 @@ export const columns: ColumnDef<User>[] = [
       );
     },
     cell: ({ row }) => {
-      const department = row.original.department;
-      if (!department) return null;
+      const departments = row.original.departments;
+      if (departments.length === 0) return null;
 
       return (
         <div className="uppercase">
-          {department?.acronym} {`(${department?.type})`}
+          {departments.at(-1)?.acronym} {`(${departments.at(-1)?.type})`}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "periods",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Periode
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const periods = row.original.periods;
+      if (periods.length === 0) return null;
+
+      return (
+        <div className="capitalize">
+          {periods.at(-1)?.year} ({periods.at(-1)?.name})
         </div>
       );
     },
@@ -202,9 +214,7 @@ export const columns: ColumnDef<User>[] = [
                 </UserDeleteAlertTrigger>
               </DropdownMenuContent>
             </DropdownMenu>
-
             <UserEditContent
-              departments={table.options.meta?.departments ?? []}
               user={user}
               onEdit={() => table.options.meta?.onUpdateRows()}
             />
