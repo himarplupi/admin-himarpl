@@ -24,6 +24,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -35,7 +43,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
-import type { Department, User } from "./types";
+import type { User } from "@prisma/client";
 
 const createFormSchema = z.object({
   name: z
@@ -47,24 +55,23 @@ const createFormSchema = z.object({
       message: "Name must be more than 4 characters",
     }),
   image: z.string(),
-  position: z.string(),
-  periods: z.array(z.string()),
   email: z.string().email(),
   role: z.enum(["admin", "member"]),
+  periodYears: z.array(z.number()),
   departmentId: z.string().optional(),
+  positionId: z.string().optional(),
 });
 
 type CreateFormSchema = z.infer<typeof createFormSchema>;
 
 export function UserCreateDialog({
-  departments,
-  currentPeriod,
   onCreate,
 }: {
-  departments: Department[];
-  currentPeriod: string;
   onCreate: (data: User) => void;
 }) {
+  const periods = api.period.all.useQuery().data ?? [];
+  const positions = api.position.all.useQuery().data ?? [];
+  const departments = api.department.all.useQuery().data ?? [];
   const createMutation = api.user.create.useMutation();
   const [open, setOpen] = useState(false);
   const form = useForm<CreateFormSchema>({
@@ -73,18 +80,25 @@ export function UserCreateDialog({
       name: "",
       image: "",
       role: "member",
-      position: "Staff",
-      periods: [currentPeriod],
       email: "",
+      periodYears: [],
+      departmentId: undefined,
+      positionId: undefined,
     },
   });
 
   const onSubmit = async (values: CreateFormSchema) => {
     setOpen(false);
 
-    values.periods = [currentPeriod];
-
-    const mutationPromise = createMutation.mutateAsync(values);
+    const mutationPromise = createMutation.mutateAsync({
+      name: values.name,
+      image: values.image,
+      email: values.email,
+      role: values.role,
+      periodYears: values.periodYears,
+      departmentIds: values.departmentId ? [values.departmentId] : undefined,
+      positionIds: values.positionId ? [values.positionId] : undefined,
+    });
 
     toast.promise(mutationPromise, {
       loading: "Membuat user...",
@@ -188,6 +202,62 @@ export function UserCreateDialog({
 
                   <FormField
                     control={form.control}
+                    name="periodYears"
+                    disabled={periods.length === 0}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Periode</FormLabel>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className="justify-start"
+                              >
+                                {field.value.length === 0
+                                  ? "Pilih periode..."
+                                  : field.value.join(", ")}
+                              </Button>
+                            </FormControl>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuLabel>Periode</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+
+                            {periods.map((period) => (
+                              <DropdownMenuCheckboxItem
+                                className="capitalize"
+                                key={period.id}
+                                checked={field.value.includes(period.year)}
+                                onCheckedChange={() => {
+                                  if (field.value.includes(period.year)) {
+                                    field.onChange(
+                                      field.value.filter(
+                                        (value) => value !== period.year,
+                                      ),
+                                    );
+                                  } else {
+                                    field.onChange([
+                                      ...field.value,
+                                      period.year,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                {period.year} ({period.name})
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="departmentId"
                     disabled={departments.length === 0}
                     render={({ field }) => (
@@ -245,16 +315,34 @@ export function UserCreateDialog({
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
-                    name="position"
+                    name="positionId"
+                    disabled={positions.length === 0}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Jabatan</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
+                        <FormLabel>Posisi</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih posisi..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {positions.map((position) => (
+                              <SelectItem
+                                key={position.id}
+                                value={position.id}
+                                className="capitalize"
+                              >
+                                {position.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

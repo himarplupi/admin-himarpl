@@ -9,7 +9,7 @@ export const userRouter = createTRPCRouter({
   count: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.user.count();
   }),
-  getMany: protectedProcedure.query(({ ctx }) => {
+  all: protectedProcedure.query(({ ctx }) => {
     return ctx.db.user.findMany();
   }),
   byPeriod: protectedProcedure
@@ -62,9 +62,9 @@ export const userRouter = createTRPCRouter({
         email: z.string().email(),
         image: z.string(),
         role: z.enum(["admin", "member"]),
-        positionIds: z.array(z.string()),
         periodYears: z.array(z.number()),
-        departmentIds: z.array(z.string()),
+        positionIds: z.array(z.string()).optional(),
+        departmentIds: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -81,12 +81,12 @@ export const userRouter = createTRPCRouter({
               year,
             })),
           },
-          positions: {
+          positions: input.positionIds && {
             connect: input.positionIds.map((id) => ({
               id,
             })),
           },
-          departments: {
+          departments: input.departmentIds && {
             connect: input.departmentIds.map((id) => ({
               id,
             })),

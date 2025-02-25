@@ -59,7 +59,7 @@ export function NavMobile({
                     title: "Pengurus",
                     label: "",
                     icon: Users2,
-                    href: "/users/" + new Date().getFullYear(),
+                    href: "/users",
                     variant: pathname.includes("/users") ? "default" : "ghost",
                   },
                   {

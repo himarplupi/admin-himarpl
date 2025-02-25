@@ -19,15 +19,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -48,9 +39,9 @@ import type {
   SortingState,
   RowData,
 } from "@tanstack/table-core";
-import type { Department, User } from "@/components/users/types";
+import type { Department, User } from "@prisma/client";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {
@@ -61,19 +52,9 @@ declare module "@tanstack/table-core" {
 }
 
 export function DataTableUsers() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const currentPeriod = pathname.split("/")[2] ?? "";
-
   const utils = api.useUtils();
-
-  const users = api.user.byPeriod.useQuery({ period: currentPeriod });
-
-  const departments =
-    (api.department.getManySelect.useQuery({
-      acronym: true,
-      type: true,
-    }).data as Department[]) ?? [];
+  const users = api.user.all.useQuery();
+  const departments = api.department.all.useQuery().data ?? [];
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -97,7 +78,7 @@ export function DataTableUsers() {
 
   const table = useReactTable({
     columns,
-    data: (users.data as User[]) ?? [],
+    data: users.data ?? [],
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -130,8 +111,6 @@ export function DataTableUsers() {
       {table.getFilteredSelectedRowModel().rows.length === 0 && (
         <div className="flex items-center py-4">
           <UserCreateDialog
-            currentPeriod={currentPeriod}
-            departments={departments}
             onCreate={async () => {
               await utils.user.invalidate();
             }}
@@ -172,24 +151,6 @@ export function DataTableUsers() {
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <Select
-              value={currentPeriod}
-              onValueChange={(value) => {
-                router.push(`/users/${value}`);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih periode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Tahun Periode</SelectLabel>
-                  <SelectItem value="2024">2024</SelectItem>
-                  <SelectItem value="2025">2025</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       )}

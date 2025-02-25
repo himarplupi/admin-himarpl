@@ -16,11 +16,28 @@ export const departmentRouter = createTRPCRouter({
         description: z.boolean().optional(),
         image: z.boolean().optional(),
         type: z.boolean().optional(),
+        periodYear: z.boolean().optional(),
+        programs: z.boolean().optional(),
+        users: z.boolean().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       return await ctx.db.department.findMany({
-        select: { id: true, ...input },
+        select: {
+          id: true,
+          ...input,
+        },
+      });
+    }),
+  getByPeriodYear: protectedProcedure
+    .input(
+      z.object({
+        periodYear: z.number(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.department.findMany({
+        where: { periodYear: input.periodYear },
       });
     }),
   create: protectedProcedure

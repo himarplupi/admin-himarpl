@@ -129,7 +129,7 @@ export function NavDesktop({
                     title: "Pengurus",
                     label: userQuery.data?.toString() ?? "",
                     icon: Users2,
-                    href: "/users/" + new Date().getFullYear(),
+                    href: "/users",
                     variant: pathname.includes("/users") ? "default" : "ghost",
                   },
                   {
