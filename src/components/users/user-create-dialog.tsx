@@ -71,6 +71,8 @@ export function UserCreateDialog({
   });
 
   const [selectedPeriods] = form.watch(["periodYears"]);
+  const [selectedDepartments] = form.watch(["departmentIds"]);
+  const [selectedPositions] = form.watch(["positionIds"]);
 
   const onSubmit = async (values: UserFormSchema) => {
     setOpen(false);
@@ -217,6 +219,29 @@ export function UserCreateDialog({
                                 checked={field.value.includes(period.year)}
                                 onCheckedChange={() => {
                                   if (field.value.includes(period.year)) {
+                                    // When unselecting a period, remove its index from departmentIds and positionIds
+                                    const periodIndex = field.value.indexOf(
+                                      period.year,
+                                    );
+                                    const newDepartmentIds = [
+                                      ...form.getValues("departmentIds"),
+                                    ];
+                                    const newPositionIds = [
+                                      ...form.getValues("positionIds"),
+                                    ];
+
+                                    newDepartmentIds.splice(periodIndex, 1);
+                                    newPositionIds.splice(periodIndex, 1);
+
+                                    form.setValue(
+                                      "departmentIds",
+                                      newDepartmentIds,
+                                    );
+                                    form.setValue(
+                                      "positionIds",
+                                      newPositionIds,
+                                    );
+
                                     field.onChange(
                                       field.value.filter(
                                         (value) => value !== period.year,
@@ -260,14 +285,20 @@ export function UserCreateDialog({
                             <Select
                               defaultValue={field.value[index]}
                               onValueChange={(newValue) => {
-                                field.onChange(
-                                  field.value.map((value, i) => {
-                                    if (i === index) {
-                                      return newValue;
-                                    }
-
-                                    return value;
-                                  }),
+                                const newDepartmentIds = [
+                                  ...selectedDepartments,
+                                ];
+                                // Ensure array has enough slots
+                                while (
+                                  newDepartmentIds.length <
+                                  selectedPeriods.length
+                                ) {
+                                  newDepartmentIds.push("");
+                                }
+                                newDepartmentIds[index] = newValue;
+                                form.setValue(
+                                  "departmentIds",
+                                  newDepartmentIds,
                                 );
                               }}
                             >
@@ -336,15 +367,15 @@ export function UserCreateDialog({
                             <FormLabel>Posisi</FormLabel>
                             <Select
                               onValueChange={(newValue) => {
-                                field.onChange(
-                                  field.value.map((value, i) => {
-                                    if (i === index) {
-                                      return newValue;
-                                    }
-
-                                    return value;
-                                  }),
-                                );
+                                const newPositionIds = [...selectedPositions];
+                                // Ensure array has enough slots
+                                while (
+                                  newPositionIds.length < selectedPeriods.length
+                                ) {
+                                  newPositionIds.push("");
+                                }
+                                newPositionIds[index] = newValue;
+                                form.setValue("positionIds", newPositionIds);
                               }}
                               defaultValue={field.value[index]}
                             >
