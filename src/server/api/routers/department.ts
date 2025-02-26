@@ -6,7 +6,11 @@ export const departmentRouter = createTRPCRouter({
     return await ctx.db.department.count();
   }),
   all: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.department.findMany();
+    return ctx.db.department.findMany({
+      include: {
+        programs: true,
+      },
+    });
   }),
   getManySelect: protectedProcedure
     .input(

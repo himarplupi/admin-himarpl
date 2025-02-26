@@ -2,7 +2,6 @@
 
 import { useState, createContext, useContext } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Trash2 } from "lucide-react";
@@ -36,34 +35,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import type { Department } from "@prisma/client";
+import type { Department } from "./department-type";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-
 import { ReactLenis } from "lenis/react";
-
-const editFormSchema = z.object({
-  name: z
-    .string()
-    .max(255, {
-      message: "Name must be less than 255 characters",
-    })
-    .min(4, {
-      message: "Name must be more than 4 characters",
-    }),
-  image: z.string(),
-  description: z.string(),
-  acronym: z
-    .string()
-    .max(32, {
-      message: "Acronym must be less than 32 characters",
-    })
-    .min(2, {
-      message: "Acronym must be more than 2 characters",
-    }),
-  type: z.enum(["BE", "DP"]),
-});
-
-type EditFormSchema = z.infer<typeof editFormSchema>;
+import { type Department as DefaultDepartment } from "@prisma/client";
+import {
+  type DepartmentFormSchema,
+  departmentFormSchema,
+} from "./department-form-schema";
 
 const EditDepartmentContext = createContext<{
   open: boolean;
@@ -102,26 +81,31 @@ export function DepartmentEditContent({
   onEdit,
 }: {
   department: Department;
-  onEdit?: (data?: Department) => void;
+  onEdit?: (data?: DefaultDepartment) => void;
 }) {
   const [parent] = useAutoAnimate();
   const departmentMutation = api.department.update.useMutation();
-  const form = useForm<EditFormSchema>({
-    resolver: zodResolver(editFormSchema),
+  const periods = api.period.all.useQuery().data ?? [];
+  const form = useForm<DepartmentFormSchema>({
+    resolver: zodResolver(departmentFormSchema),
     defaultValues: {
       name: department.name,
       description: department.description ?? "",
-      type: department.type,
+      type: department.type as "BE" | "DP",
       acronym: department.acronym ?? "",
       image: department.image ?? "",
+      periodYear: department.periodYear,
+      programs: department.programs.map((p) => p.content),
     },
   });
-  const [programsInput, setProgramsInput] = useState(department.programs);
-  const [programs, setPrograms] = useState(department.programs);
+  const [programsInput, setProgramsInput] = useState(
+    department.programs.map((p) => p.content),
+  );
+  const [programs] = form.watch(["programs"]);
 
   const { setOpen } = useContext(EditDepartmentContext);
 
-  const onSubmit = async (values: EditFormSchema) => {
+  const onSubmit = async (values: DepartmentFormSchema) => {
     setOpen(false);
 
     const editedDepartment = {
@@ -158,9 +142,10 @@ export function DepartmentEditContent({
       form.reset({
         name: data.name,
         description: data.description ?? "",
-        type: data.type,
+        type: data.type as "BE" | "DP",
         acronym: data.acronym ?? "",
         image: data.image ?? "",
+        periodYear: data.periodYear,
       });
     });
   };
@@ -178,6 +163,36 @@ export function DepartmentEditContent({
               id="edit-department-form"
             >
               <div className="grid gap-4 py-6">
+                <FormField
+                  control={form.control}
+                  name="periodYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tahun Periode</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Tahun Periode..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {periods.map((period) => (
+                            <SelectItem
+                              key={period.id}
+                              value={period.year.toString()}
+                            >
+                              {period.year} ({period.name})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="type"
@@ -202,7 +217,6 @@ export function DepartmentEditContent({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="name"
@@ -216,7 +230,6 @@ export function DepartmentEditContent({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="acronym"
@@ -230,7 +243,6 @@ export function DepartmentEditContent({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="image"
@@ -244,7 +256,6 @@ export function DepartmentEditContent({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="description"
@@ -258,7 +269,6 @@ export function DepartmentEditContent({
                     </FormItem>
                   )}
                 />
-
                 <div className="space-y-2" ref={parent}>
                   <Label>Program Kerja</Label>
                   {programsInput.map((pInput, index) => {
@@ -271,7 +281,7 @@ export function DepartmentEditContent({
                             const value = e.target.value;
                             const newPrograms = [...programs];
                             newPrograms[index] = value;
-                            setPrograms(newPrograms);
+                            form.setValue("programs", newPrograms);
                           }}
                         />
                         <Button
@@ -282,7 +292,7 @@ export function DepartmentEditContent({
                           onClick={() => {
                             const newPrograms = [...programs];
                             newPrograms.splice(index, 1);
-                            setPrograms(newPrograms);
+                            form.setValue("programs", newPrograms);
                             setProgramsInput(newPrograms);
                           }}
                         >
@@ -298,7 +308,7 @@ export function DepartmentEditContent({
                     type="button"
                     onClick={() => {
                       setProgramsInput((prev) => [...prev, ""]);
-                      setPrograms((prev) => [...prev, ""]);
+                      form.setValue("programs", [...programs, ""]);
                     }}
                   >
                     Tambah Program Kerja

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
@@ -35,51 +34,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-
 import { ReactLenis } from "lenis/react";
-
-const createFormSchema = z.object({
-  name: z
-    .string()
-    .max(255, {
-      message: "Name must be less than 255 characters",
-    })
-    .min(4, {
-      message: "Name must be more than 4 characters",
-    }),
-  image: z.string(),
-  description: z.string(),
-  acronym: z
-    .string()
-    .max(32, {
-      message: "Acronym must be less than 32 characters",
-    })
-    .min(2, {
-      message: "Acronym must be more than 2 characters",
-    }),
-  type: z.enum(["BE", "DP"]),
-});
-
-type CreateFormSchema = z.infer<typeof createFormSchema>;
+import {
+  type DepartmentFormSchema,
+  departmentFormSchema,
+} from "./department-form-schema";
 
 export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
   const [parent] = useAutoAnimate();
   const departmentMutation = api.department.create.useMutation();
+  const periods = api.period.all.useQuery().data ?? [];
   const [open, setOpen] = useState(false);
-  const form = useForm<CreateFormSchema>({
-    resolver: zodResolver(createFormSchema),
+  const form = useForm<DepartmentFormSchema>({
+    resolver: zodResolver(departmentFormSchema),
     defaultValues: {
       name: "",
       description: "",
       type: "BE",
       acronym: "",
       image: "",
+      periodYear: new Date().getFullYear(),
+      programs: [],
     },
   });
   const [programsInput, setProgramsInput] = useState([""]);
-  const [programs, setPrograms] = useState([""]);
+  const [programs] = form.watch(["programs"]);
 
-  const onSubmit = async (values: CreateFormSchema) => {
+  const onSubmit = async (values: DepartmentFormSchema) => {
     setOpen(false);
 
     const mutationPromise = departmentMutation.mutateAsync({
@@ -118,6 +99,37 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
                 id="create-department-form"
               >
                 <div className="grid gap-4 py-6">
+                  <FormField
+                    control={form.control}
+                    name="periodYear"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tahun Periode</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Tahun Periode..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {periods.map((period) => (
+                              <SelectItem
+                                key={period.id}
+                                value={period.year.toString()}
+                              >
+                                {period.year} ({period.name})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="type"
@@ -211,7 +223,8 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
                               const value = e.target.value;
                               const newPrograms = [...programs];
                               newPrograms[index] = value;
-                              setPrograms(newPrograms);
+
+                              form.setValue("programs", newPrograms);
                             }}
                           />
                           <Button
@@ -222,7 +235,7 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
                             onClick={() => {
                               const newPrograms = [...programs];
                               newPrograms.splice(index, 1);
-                              setPrograms(newPrograms);
+                              form.setValue("programs", newPrograms);
                               setProgramsInput(newPrograms);
                             }}
                           >
@@ -238,7 +251,7 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
                       type="button"
                       onClick={() => {
                         setProgramsInput((prev) => [...prev, ""]);
-                        setPrograms((prev) => [...prev, ""]);
+                        form.setValue("programs", [...programs, ""]);
                       }}
                     >
                       Tambah Program Kerja

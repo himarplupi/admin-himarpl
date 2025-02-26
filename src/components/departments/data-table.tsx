@@ -194,20 +194,23 @@ export function DataTableDepartments() {
             ))}
           </TableHeader>
           <TableBody ref={parent}>
-            {table.getRowModel().rows.map((row) => (
+            {table?.getRowModel()?.rows.map((row) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  <TableCell key={cell?.id}>
+                    {flexRender(
+                      cell?.column?.columnDef?.cell,
+                      cell?.getContext(),
+                    )}
                   </TableCell>
                 ))}
               </TableRow>
             ))}
 
-            {table.getRowModel().rows.length < 1 && !departments.isLoading && (
+            {table.getRowModel()?.rows.length < 1 && !departments.isLoading && (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
