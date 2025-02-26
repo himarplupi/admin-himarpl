@@ -2,7 +2,14 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut, Users2, Waypoints } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Users2,
+  Waypoints,
+  Calendar,
+  Award,
+} from "lucide-react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
@@ -57,6 +64,8 @@ export function NavDesktop({
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const departmentQuery = api.department.count.useQuery();
   const userQuery = api.user.count.useQuery();
+  const periodQuery = api.period.count.useQuery();
+  const positionQuery = api.position.count.useQuery();
 
   return !hideOnRoutes.includes(pathname) ? (
     <TooltipProvider delayDuration={0}>
@@ -138,6 +147,20 @@ export function NavDesktop({
                     icon: Waypoints,
                     href: "/departments",
                     variant: pathname === "/departments" ? "default" : "ghost",
+                  },
+                  {
+                    title: "Periode",
+                    label: periodQuery.data?.toString() ?? "",
+                    icon: Calendar,
+                    href: "/periods",
+                    variant: pathname === "/periods" ? "default" : "ghost",
+                  },
+                  {
+                    title: "Posisi",
+                    label: positionQuery.data?.toString() ?? "",
+                    icon: Award,
+                    href: "/positions",
+                    variant: pathname === "/positions" ? "default" : "ghost",
                   },
                 ]}
               />

@@ -1,6 +1,14 @@
 "use client";
 
-import { LayoutDashboard, LogOut, Menu, Users2, Waypoints } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Users2,
+  Waypoints,
+  Calendar,
+  Award,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LogoHIMARPL } from "./logo-himarpl";
@@ -68,6 +76,20 @@ export function NavMobile({
                     icon: Waypoints,
                     href: "/departments",
                     variant: pathname === "/departments" ? "default" : "ghost",
+                  },
+                  {
+                    title: "Periode",
+                    label: "",
+                    icon: Calendar,
+                    href: "/periods",
+                    variant: pathname === "/periods" ? "default" : "ghost",
+                  },
+                  {
+                    title: "Posisi",
+                    label: "",
+                    icon: Award,
+                    href: "/positions",
+                    variant: pathname === "/positions" ? "default" : "ghost",
                   },
                 ]}
               />

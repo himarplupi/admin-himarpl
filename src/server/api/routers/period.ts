@@ -5,6 +5,9 @@ export const periodRouter = createTRPCRouter({
   all: protectedProcedure.query(({ ctx }) => {
     return ctx.db.period.findMany();
   }),
+  count: protectedProcedure.query(({ ctx }) => {
+    return ctx.db.period.count();
+  }),
   create: protectedProcedure
     .input(
       z.object({
