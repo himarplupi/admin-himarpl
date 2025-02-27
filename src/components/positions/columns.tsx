@@ -63,6 +63,24 @@ export const columns: ColumnDef<Position>[] = [
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
+    accessorKey: "departmentId",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Departement
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const position = row.original;
+      return <div className="capitalize">{position.department?.name}</div>;
+    },
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row, table }) => {

@@ -7,6 +7,13 @@ import { Plus } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -25,15 +32,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ReactLenis } from "lenis/react";
-import { type PositionFormSchema, positionFormSchema } from "./position-form-schema";
+import {
+  type PositionFormSchema,
+  positionFormSchema,
+} from "./position-form-schema";
 
 export function PositionCreateDialog({ onCreate }: { onCreate: () => void }) {
+  const departments = api.department.all.useQuery()?.data ?? [];
   const positionMutation = api.position.create.useMutation();
   const [open, setOpen] = useState(false);
   const form = useForm<PositionFormSchema>({
     resolver: zodResolver(positionFormSchema),
     defaultValues: {
       name: "",
+      departmentId: "",
     },
   });
 
@@ -75,6 +87,37 @@ export function PositionCreateDialog({ onCreate }: { onCreate: () => void }) {
                 id="create-position-form"
               >
                 <div className="grid gap-4 py-6">
+                  <FormField
+                    control={form.control}
+                    name="departmentId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Departement</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih departement..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-48">
+                            {departments.map((departement) => (
+                              <SelectItem
+                                key={departement.id}
+                                value={departement.id}
+                              >
+                                {departement.acronym} ({departement.periodYear})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="name"

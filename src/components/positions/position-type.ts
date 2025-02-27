@@ -1,10 +1,3 @@
-import type { Position as DefaultPosition } from "@prisma/client";
+import type { RouterOutputs } from "@/trpc/shared";
 
-export interface Position extends DefaultPosition {
-  users?: {
-    id: string;
-    name: string | null;
-    image: string | null;
-    email: string | null;
-  }[];
-}
+export type Position = RouterOutputs["position"]["all"][number];

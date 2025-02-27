@@ -6,7 +6,11 @@ export const positionRouter = createTRPCRouter({
     return await ctx.db.position.count();
   }),
   all: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.position.findMany();
+    return ctx.db.position.findMany({
+      include: {
+        department: true,
+      },
+    });
   }),
   getManySelect: protectedProcedure
     .input(
@@ -26,12 +30,14 @@ export const positionRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string(),
+        departmentId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.position.create({
         data: {
           name: input.name,
+          departmentId: input.departmentId,
         },
       });
     }),
@@ -55,6 +61,7 @@ export const positionRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         name: z.string(),
+        departmentId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -62,6 +69,7 @@ export const positionRouter = createTRPCRouter({
         where: { id: input.id },
         data: {
           name: input.name,
+          departmentId: input.departmentId,
         },
       });
     }),
