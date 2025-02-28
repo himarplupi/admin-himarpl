@@ -4,11 +4,9 @@ import { useState, createContext, useContext } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -25,18 +23,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { Period } from "./period-type";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ReactLenis } from "lenis/react";
 import { type Period as DefaultPeriod } from "@prisma/client";
 import { type PeriodFormSchema, periodFormSchema } from "./period-form-schema";

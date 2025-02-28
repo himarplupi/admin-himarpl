@@ -87,7 +87,7 @@ export function PositionEditContent({
     resolver: zodResolver(positionFormSchema),
     defaultValues: {
       name: position.name,
-      departmentId: (position.departmentId as string | null) ?? "",
+      departmentId: position.departmentId ?? "",
     },
   });
 
@@ -96,8 +96,7 @@ export function PositionEditContent({
 
     const mutationPromise = positionMutation.mutateAsync({
       id: position.id,
-      departmentId:
-        values.departmentId === "" ? undefined : values.departmentId,
+      departmentId: values.departmentId,
       name: values.name,
     });
 
@@ -114,7 +113,7 @@ export function PositionEditContent({
       }
       form.reset({
         name: data.name,
-        departmentId: (data.departmentId as string | null) ?? "",
+        departmentId: data.departmentId ?? "",
       });
     });
 
