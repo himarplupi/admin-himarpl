@@ -12,6 +12,15 @@ export const positionRouter = createTRPCRouter({
       },
     });
   }),
+  getByDepartmentIds: protectedProcedure
+    .input(z.array(z.string()))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.position.findMany({
+        where: {
+          departmentId: { in: input },
+        },
+      });
+    }),
   getManySelect: protectedProcedure
     .input(
       z.object({

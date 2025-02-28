@@ -53,7 +53,6 @@ export function UserCreateDialog({
 }) {
   const [parent] = useAutoAnimate();
   const periods = api.period.all.useQuery().data ?? [];
-  const positions = api.position.all.useQuery().data ?? [];
   const departments = api.department.all.useQuery().data ?? [];
   const createMutation = api.user.create.useMutation();
   const [open, setOpen] = useState(false);
@@ -73,6 +72,8 @@ export function UserCreateDialog({
   const [selectedPeriods] = form.watch(["periodYears"]);
   const [selectedDepartments] = form.watch(["departmentIds"]);
   const [selectedPositions] = form.watch(["positionIds"]);
+  const positions =
+    api.position.getByDepartmentIds.useQuery(selectedDepartments).data ?? [];
 
   const onSubmit = async (values: UserFormSchema) => {
     setOpen(false);
@@ -190,7 +191,6 @@ export function UserCreateDialog({
                   <FormField
                     control={form.control}
                     name="periodYears"
-                    disabled={periods.length === 0}
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Periode</FormLabel>
@@ -198,6 +198,7 @@ export function UserCreateDialog({
                           <DropdownMenuTrigger asChild>
                             <FormControl>
                               <Button
+                                disabled={periods.length === 0}
                                 variant="outline"
                                 className="justify-start"
                               >
@@ -223,12 +224,15 @@ export function UserCreateDialog({
                                     const periodIndex = field.value.indexOf(
                                       period.year,
                                     );
-                                    const newDepartmentIds = [
-                                      ...form.getValues("departmentIds"),
-                                    ];
-                                    const newPositionIds = [
-                                      ...form.getValues("positionIds"),
-                                    ];
+                                    const departmentIds =
+                                      form.getValues("departmentIds");
+                                    const positionIds =
+                                      form.getValues("positionIds");
+
+                                    if (!departmentIds || !positionIds) return;
+
+                                    const newDepartmentIds = [...departmentIds];
+                                    const newPositionIds = [...positionIds];
 
                                     newDepartmentIds.splice(periodIndex, 1);
                                     newPositionIds.splice(periodIndex, 1);
@@ -266,142 +270,163 @@ export function UserCreateDialog({
                     )}
                   />
 
-                  {selectedPeriods.map((periodYear, index) => (
-                    <div key={periodYear.toString()} className="my-3 space-y-3">
-                      <h4 className="mb-4 text-xl font-medium leading-none tracking-tight">{`Periode ${periodYear}`}</h4>
+                  {selectedPeriods.map((periodYear, index) => {
+                    const periodDepartments = departments.filter(
+                      (department) => department.periodYear === periodYear,
+                    );
+                    const departmentPositions = positions.filter(
+                      (position) =>
+                        position.departmentId === selectedDepartments[index],
+                    );
+                    const isDepartmentNotExist = periodDepartments.length === 0;
+                    const isPositionNotExist = departmentPositions.length === 0;
 
-                      <FormField
-                        control={form.control}
-                        name="departmentIds"
-                        disabled={
-                          departments.filter(
-                            (department) =>
-                              department.periodYear === periodYear,
-                          ).length === 0
-                        }
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Departemen</FormLabel>
-                            <Select
-                              defaultValue={field.value[index]}
-                              onValueChange={(newValue) => {
-                                const newDepartmentIds = [
-                                  ...selectedDepartments,
-                                ];
-                                // Ensure array has enough slots
-                                while (
-                                  newDepartmentIds.length <
-                                  selectedPeriods.length
-                                ) {
-                                  newDepartmentIds.push("");
-                                }
-                                newDepartmentIds[index] = newValue;
-                                form.setValue(
-                                  "departmentIds",
-                                  newDepartmentIds,
-                                );
-                              }}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Pilih departemen..." />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectGroup>
-                                  <SelectLabel className="uppercase">
-                                    Badan Eksekutif
-                                  </SelectLabel>
-                                  {departments
-                                    .filter(
-                                      (department) =>
-                                        department.type === "BE" &&
-                                        department.periodYear === periodYear,
-                                    )
-                                    .map((department) => (
-                                      <SelectItem
-                                        key={department.id}
-                                        value={department.id}
-                                        className="uppercase"
-                                      >
-                                        {department.acronym} (
-                                        {department.periodYear})
-                                      </SelectItem>
-                                    ))}
-                                </SelectGroup>
-                                <SelectGroup>
-                                  <SelectLabel className="uppercase">
-                                    Dewan Perwakilan
-                                  </SelectLabel>
-                                  {departments
-                                    .filter(
-                                      (department) =>
-                                        department.type === "DP" &&
-                                        department.periodYear === periodYear,
-                                    )
-                                    .map((department) => (
-                                      <SelectItem
-                                        key={department.id}
-                                        value={department.id}
-                                        className="uppercase"
-                                      >
-                                        {department.acronym} (
-                                        {department.periodYear})
-                                      </SelectItem>
-                                    ))}
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
+                    return (
+                      <div
+                        key={periodYear.toString()}
+                        className="my-3 space-y-3"
+                      >
+                        <h4 className="mb-4 text-xl font-medium leading-none tracking-tight">{`Periode ${periodYear}`}</h4>
 
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                        <FormField
+                          control={form.control}
+                          name="departmentIds"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Departemen</FormLabel>
+                              <Select
+                                disabled={isDepartmentNotExist}
+                                defaultValue={field.value[index]}
+                                onValueChange={(newValue) => {
+                                  const newDepartmentIds = [
+                                    ...selectedDepartments,
+                                  ];
+                                  // Ensure array has enough slots
+                                  while (
+                                    newDepartmentIds.length <
+                                    selectedPeriods.length
+                                  ) {
+                                    newDepartmentIds.push("");
+                                  }
+                                  newDepartmentIds[index] = newValue;
+                                  form.setValue(
+                                    "departmentIds",
+                                    newDepartmentIds,
+                                  );
+                                }}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue
+                                      placeholder={
+                                        isDepartmentNotExist
+                                          ? "Belum ada departemen"
+                                          : "Pilih departemen..."
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectGroup>
+                                    <SelectLabel className="uppercase">
+                                      Badan Eksekutif
+                                    </SelectLabel>
+                                    {periodDepartments
+                                      .filter(
+                                        (department) =>
+                                          department.type === "BE",
+                                      )
+                                      .map((department) => (
+                                        <SelectItem
+                                          key={department.id}
+                                          value={department.id}
+                                          className="uppercase"
+                                        >
+                                          {department.acronym} (
+                                          {department.periodYear})
+                                        </SelectItem>
+                                      ))}
+                                  </SelectGroup>
+                                  <SelectGroup>
+                                    <SelectLabel className="uppercase">
+                                      Dewan Perwakilan
+                                    </SelectLabel>
+                                    {periodDepartments
+                                      .filter(
+                                        (department) =>
+                                          department.type === "DP",
+                                      )
+                                      .map((department) => (
+                                        <SelectItem
+                                          key={department.id}
+                                          value={department.id}
+                                          className="uppercase"
+                                        >
+                                          {department.acronym} (
+                                          {department.periodYear})
+                                        </SelectItem>
+                                      ))}
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
 
-                      <FormField
-                        control={form.control}
-                        name="positionIds"
-                        disabled={positions.length === 0}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Posisi</FormLabel>
-                            <Select
-                              onValueChange={(newValue) => {
-                                const newPositionIds = [...selectedPositions];
-                                // Ensure array has enough slots
-                                while (
-                                  newPositionIds.length < selectedPeriods.length
-                                ) {
-                                  newPositionIds.push("");
-                                }
-                                newPositionIds[index] = newValue;
-                                form.setValue("positionIds", newPositionIds);
-                              }}
-                              defaultValue={field.value[index]}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Pilih posisi..." />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {positions.map((position) => (
-                                  <SelectItem
-                                    key={position.id}
-                                    value={position.id}
-                                    className="capitalize"
-                                  >
-                                    {position.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  ))}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="positionIds"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Posisi</FormLabel>
+                              <Select
+                                onValueChange={(newValue) => {
+                                  const newPositionIds = [...selectedPositions];
+                                  // Ensure array has enough slots
+                                  while (
+                                    newPositionIds.length <
+                                    selectedPeriods.length
+                                  ) {
+                                    newPositionIds.push("");
+                                  }
+                                  newPositionIds[index] = newValue;
+                                  form.setValue("positionIds", newPositionIds);
+                                }}
+                                defaultValue={field.value[index]}
+                                disabled={isPositionNotExist}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue
+                                      placeholder={
+                                        isPositionNotExist
+                                          ? "Belum ada posisi"
+                                          : "Pilih posisi..."
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {departmentPositions.map((position) => (
+                                    <SelectItem
+                                      key={position.id}
+                                      value={position.id}
+                                      className="capitalize"
+                                    >
+                                      {position.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </form>
             </Form>
