@@ -39,8 +39,10 @@ import type {
   SortingState,
   RowData,
 } from "@tanstack/table-core";
-import type { Department } from "@prisma/client";
+import { type RouterOutputs } from "@/trpc/shared";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+
+type Department = RouterOutputs["department"]["all"][number];
 
 declare module "@tanstack/table-core" {
   interface TableMeta<TData extends RowData> {

@@ -15,8 +15,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { errorMsg?: string };
+  searchParams: Promise<{ errorMsg?: string }>;
 }) {
+  const params = await searchParams;
   const session = await getServerAuthSession();
 
   if (session) return redirect("/");
@@ -32,11 +33,11 @@ export default async function LoginPage({
         </CardHeader>
         <CardContent>
           <div className="flex w-full flex-col gap-y-4">
-            {searchParams?.errorMsg && (
+            {params?.errorMsg && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Terjadi kesalahan saat login!</AlertTitle>
-                <AlertDescription>{searchParams?.errorMsg}</AlertDescription>
+                <AlertDescription>{params?.errorMsg}</AlertDescription>
               </Alert>
             )}
             <GoogleLoginButton />

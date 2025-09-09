@@ -27,8 +27,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { Period } from "./period-type";
 import { ReactLenis } from "lenis/react";
-import { type Period as DefaultPeriod } from "@prisma/client";
+import { type InferSelectModel } from "drizzle-orm";
+import { periods } from "@/server/db/schema";
 import { type PeriodFormSchema, periodFormSchema } from "./period-form-schema";
+
+type DefaultPeriod = InferSelectModel<typeof periods>;
 
 const EditPeriodContext = createContext<{
   open: boolean;
@@ -103,9 +106,9 @@ export function PeriodEditContent({
         onEdit(data);
       }
       form.reset({
-        name: data.name,
-        year: data.year,
-        logo: data.logo ?? "",
+        name: data?.name,
+        year: data?.year,
+        logo: data?.logo ?? "",
       });
     });
 

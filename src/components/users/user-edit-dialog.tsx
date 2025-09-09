@@ -86,17 +86,18 @@ export function UserEditContent({
     defaultValues: {
       name: user.name ?? "",
       image: user.image ?? "",
+      username: user.username ?? "",
       email: user.email ?? "",
       role: user.role as "member" | "admin",
-      periodYears: user.periods?.map((period) => period.year),
-      departmentIds: user.departments?.map((department) => department.id),
-      positionIds: user.positions?.map((position) => position.id),
+      periodYears: user.periods?.map((period) => period.year ?? undefined) ?? [],
+      departmentIds: user.departments?.map((department) => department.id ?? undefined) ?? [],
+      positionIds: user.positions?.map((position) => position.id ?? undefined) ?? [],
     },
   });
   const { setOpen } = useContext(EditUserContext);
   const [selectedPeriods] = form.watch(["periodYears"]);
-  const [selectedDepartments] = form.watch(["departmentIds"]);
-  const [selectedPositions] = form.watch(["positionIds"]);
+  const [selectedDepartments = []] = form.watch(["departmentIds"]);
+  const [selectedPositions = []] = form.watch(["positionIds"]);
   const positions =
     api.position.getByDepartmentIds.useQuery(selectedDepartments).data ?? [];
 
@@ -190,6 +191,20 @@ export function UserEditContent({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nama</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>

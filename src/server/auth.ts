@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import {
   getServerSession,
   type DefaultSession,
@@ -8,8 +7,12 @@ import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/server/db";
 import { api } from "@/trpc/server";
-import type { User as PrismaUser } from "@prisma/client";
 import { env } from "@/env";
+import {
+  users,
+  accounts,
+} from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -25,7 +28,8 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
-  interface User extends PrismaUser {
+  interface User {
+    id: string;
     role: "admin" | "member";
   }
 }
@@ -56,44 +60,55 @@ export const authOptions: NextAuthOptions = {
         return "/login?errorMsg=You are not an admin";
       }
 
-      const account = await api.account.getByUserId.query(user.id);
+      const [account] = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, user.id));
+      // const account = await api.account.getByUserId.query(user.id);
 
       if (!account) {
         console.log("Account not found, inserting...");
         // Insert new account user if not found
-        const res = await db.account.create({
-          data: {
+        const res = await db
+          .insert(accounts)
+          .values({
             userId: user.id,
             provider: authAccount.provider,
             type: authAccount.type,
             providerAccountId: authAccount.providerAccountId,
-            access_token: authAccount.access_token,
-            refresh_token: authAccount.refresh_token,
-            expires_at: authAccount.expires_at,
-            scope: authAccount.scope,
-            token_type: authAccount.token_type,
-            id_token: authAccount.id_token,
-            session_state: authAccount.session_state,
-          },
-        });
+            accessToken: authAccount.access_token ?? null,
+            refreshToken: authAccount.refresh_token ?? null,
+            expiresAt: authAccount.expires_at ?? null,
+            scope: authAccount.scope ?? null,
+            tokenType: authAccount.token_type ?? null,
+            idToken: authAccount.id_token ?? null,
+            sessionState: authAccount.session_state ?? null,
+          })
+          .returning();
 
         if (!res) return "/login?errorMsg=Failed to insert account";
       }
 
       return true;
     },
-    session: async ({ session, user }) => {
+    session: async ({ session, token }) => {
+      const [user] = await db
+        .select({
+          id: users.id,
+          role: users.role,
+        })
+        .from(users)
+        .where(eq(users.email, session.user?.email ?? ""));
       return {
         ...session,
         user: {
           ...session.user,
-          id: user.id,
-          role: user.role,
+          id: user?.id ?? "",
+          role: user?.role ?? "member",
         },
       };
     },
   },
-  adapter: PrismaAdapter(db) as Adapter,
   providers: [
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,

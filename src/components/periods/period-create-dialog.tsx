@@ -83,7 +83,11 @@ export function DepartmentCreateDialog({ onCreate }: { onCreate: () => void }) {
                       <FormItem>
                         <FormLabel>Tahun Periode/Kabinet</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            className="no-spinner"
+                            type="number" {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

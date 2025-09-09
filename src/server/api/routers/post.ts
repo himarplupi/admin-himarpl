@@ -1,4 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { sql, gte } from "drizzle-orm";
+import { posts } from "@/server/db/schema";
 
 export type Post7Day = {
   publishedAt: Date | null;
@@ -12,22 +14,22 @@ export type PostStatistic = {
 
 export const postRouter = createTRPCRouter({
   getStatistic: protectedProcedure.query(async ({ ctx }) => {
-    const posts7Days = await ctx.db.post.findMany({
-      orderBy: { publishedAt: "asc" },
-      select: { publishedAt: true },
-      where: {
-        publishedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-      },
-    });
+    const now = Date.now();
+    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
 
-    const posts7DaysBefore = await ctx.db.post.count({
-      where: {
-        publishedAt: {
-          gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-          lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        },
-      },
-    });
+    const posts7Days = await ctx.db
+      .select({ publishedAt: posts.publishedAt })
+      .from(posts)
+      .where(gte(posts.publishedAt, sevenDaysAgo.toISOString()))
+      .orderBy(sql`${posts.publishedAt} asc`);
+
+    const posts7DaysBeforeResult = await ctx.db
+     .select({ count: sql<number>`count(*)` })
+     .from(posts)
+     .where(sql`${posts.publishedAt} >= ${fourteenDaysAgo} AND ${posts.publishedAt} < ${sevenDaysAgo}`);
+
+    const posts7DaysBefore = posts7DaysBeforeResult[0]?.count ?? 0;
 
     const totalPostsIn7Days = posts7Days.length - posts7DaysBefore;
 

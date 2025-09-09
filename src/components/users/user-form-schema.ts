@@ -11,6 +11,7 @@ export const userFormSchema = z.object({
     }),
   image: z.string(),
   email: z.string().email(),
+  username: z.string().default(""),
   role: z.enum(["admin", "member"]),
   periodYears: z.array(z.number()),
   departmentIds: z.array(z.string()),
