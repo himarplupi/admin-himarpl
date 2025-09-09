@@ -31,8 +31,17 @@ export default async function Home() {
   } = await api.user.getStatistic.query();
   const { percentageIn7Days, posts7Days, totalPostsIn7Days } =
     await api.post.getStatistic.query();
+    
+  type Post7Days = Awaited<
+    ReturnType<typeof api.post.getStatistic.query>
+  >["posts7Days"][number];
 
-  const postOverviewData = generatePostOverview(posts7Days);
+  const posts7DaysConverted = posts7Days.map((post: Post7Days) => ({
+    ...post,
+    publishedAt: post.publishedAt ? new Date(post.publishedAt) : null,
+  }));
+
+  const postOverviewData = generatePostOverview(posts7DaysConverted);
 
   return (
     <main className="container min-h-screen flex-1 space-y-4 p-8">

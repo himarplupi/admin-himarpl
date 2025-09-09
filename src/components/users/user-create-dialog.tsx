@@ -43,8 +43,11 @@ import { Input } from "@/components/ui/input";
 import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { User } from "@prisma/client";
+import { type InferSelectModel } from "drizzle-orm";
+import { users } from "@/server/db/schema";
 import { type UserFormSchema, userFormSchema } from "./user-form-schema";
+
+type User = InferSelectModel<typeof users>;
 
 export function UserCreateDialog({
   onCreate,
@@ -61,6 +64,7 @@ export function UserCreateDialog({
     defaultValues: {
       name: "",
       image: "",
+      username: "",
       role: "member",
       email: "",
       periodYears: [new Date().getFullYear()],
@@ -82,6 +86,7 @@ export function UserCreateDialog({
       name: values.name,
       image: values.image,
       email: values.email,
+      username: values.username,
       role: values.role,
       periodYears: values.periodYears,
       departmentIds: values.departmentIds,
@@ -166,6 +171,20 @@ export function UserCreateDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nama</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>

@@ -13,6 +13,9 @@ import { ZodError } from "zod";
 
 import { getServerAuthSession } from "@/server/auth";
 import { db } from "@/server/db";
+import { users } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
+
 
 /**
  * 1. CONTEXT
@@ -97,10 +100,10 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  await ctx.db.user.update({
-    where: { id: ctx.session.user.id },
-    data: { lastLoginAt: new Date() },
-  });
+  await ctx.db
+    .update(users)
+    .set({ lastLoginAt: new Date() })
+    .where(eq(users.id, ctx.session.user.id));
 
   return next({
     ctx: {

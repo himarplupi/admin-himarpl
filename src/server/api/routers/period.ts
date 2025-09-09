@@ -1,12 +1,18 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { eq, inArray, sql } from "drizzle-orm";
+import { periods } from "@/server/db/schema";
 
 export const periodRouter = createTRPCRouter({
   all: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.period.findMany();
+    return ctx.db.query.periods.findMany();
   }),
-  count: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.period.count();
+  count: protectedProcedure.query(async ({ ctx }) => {
+    const [{ count } = {}] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(periods);
+
+    return count;
   }),
   create: protectedProcedure
     .input(
@@ -17,24 +23,27 @@ export const periodRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.period.create({
-        data: input,
-      });
+      const [created] = await ctx.db
+        .insert(periods)
+        .values(input)
+        .returning();
+      return created;
     }),
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.period.delete({
-        where: { id: input },
-        select: { id: true },
-      });
+      const [deleted] = await ctx.db
+        .delete(periods)
+        .where(eq(periods.id, input))
+        .returning({ id: periods.id });
+      return deleted;
     }),
   deleteMany: protectedProcedure
     .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.period.deleteMany({
-        where: { id: { in: input } },
-      });
+      return ctx.db
+        .delete(periods)
+        .where(inArray(periods.id, input));
     }),
   update: protectedProcedure
     .input(
@@ -46,9 +55,12 @@ export const periodRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.period.update({
-        where: { id: input.id },
-        data: input,
-      });
+      const { id, ...data } = input;
+      const [updated] = await ctx.db
+        .update(periods)
+        .set(data)
+        .where(eq(periods.id, id))
+        .returning();
+      return updated;
     }),
 });

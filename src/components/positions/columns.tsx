@@ -77,7 +77,7 @@ export const columns: ColumnDef<Position>[] = [
     },
     cell: ({ row }) => {
       const position = row.original;
-      return <div className="capitalize">{position.department?.name}</div>;
+      return <div className="capitalize">{position.department?.name} ({position.department?.year})</div>;
     },
   },
   {

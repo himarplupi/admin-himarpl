@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -38,11 +39,18 @@ import { toast } from "sonner";
 import type { Department } from "./department-type";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ReactLenis } from "lenis/react";
-import { type Department as DefaultDepartment } from "@prisma/client";
+import { type InferSelectModel } from "drizzle-orm";
+import { departments } from "@/server/db/schema";
 import {
   type DepartmentFormSchema,
   departmentFormSchema,
 } from "./department-form-schema";
+
+type DefaultDepartment = InferSelectModel<typeof departments>;
+
+type DepartmentWithPrograms = DefaultDepartment & {
+  programs: { content: string }[];
+};
 
 const EditDepartmentContext = createContext<{
   open: boolean;
@@ -101,7 +109,7 @@ export function DepartmentEditContent({
   const [programsInput, setProgramsInput] = useState(
     department.programs.map((p) => p.content),
   );
-  const [programs] = form.watch(["programs"]);
+  const programs = form.watch("programs") ?? [];
 
   const { setOpen } = useContext(EditDepartmentContext);
 
@@ -126,7 +134,7 @@ export function DepartmentEditContent({
     const mutationPromise = departmentMutation.mutateAsync({
       ...editedDepartment,
       programs,
-    });
+    }) as Promise<DepartmentWithPrograms>;
 
     toast.promise(mutationPromise, {
       loading: "Mengubah departemen...",
@@ -140,13 +148,15 @@ export function DepartmentEditContent({
         onEdit(data);
       }
       form.reset({
-        name: data.name,
-        description: data.description ?? "",
-        type: data.type as "BE" | "DP",
-        acronym: data.acronym ?? "",
-        image: data.image ?? "",
-        periodYear: data.periodYear,
+        name: data?.name,
+        description: data?.description ?? "",
+        type: data?.type as "BE" | "DP",
+        acronym: data?.acronym ?? "",
+        image: data?.image ?? "",
+        periodYear: data?.periodYear,
+        programs: data?.programs?.map((p) => p.content) ?? [],
       });
+      setProgramsInput(data?.programs?.map((p) => p.content) ?? []);
     });
   };
 
@@ -170,8 +180,8 @@ export function DepartmentEditContent({
                     <FormItem>
                       <FormLabel>Tahun Periode</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value.toString()}
+                        onValueChange={(val) => field.onChange(Number(val))}
+                        value={field.value.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -201,7 +211,7 @@ export function DepartmentEditContent({
                       <FormLabel>Type</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -276,12 +286,13 @@ export function DepartmentEditContent({
                     return (
                       <div key={key} className="flex gap-x-1">
                         <Input
-                          value={programs[index]}
+                          value={programs?.[index] ?? ""}
                           onChange={(e) => {
                             const value = e.target.value;
                             const newPrograms = [...programs];
                             newPrograms[index] = value;
                             form.setValue("programs", newPrograms);
+                            setProgramsInput(newPrograms);
                           }}
                         />
                         <Button
@@ -318,9 +329,11 @@ export function DepartmentEditContent({
             </form>
           </Form>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              Batalkan
-            </Button>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Batalkan
+              </Button>
+            </DialogClose>
             <Button form="edit-department-form" type="submit">
               Simpan perubahan
             </Button>

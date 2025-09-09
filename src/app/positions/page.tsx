@@ -8,7 +8,7 @@ export default async function PositionsPage() {
   const session = await getServerAuthSession();
 
   if (!session) return redirect("/login");
-  if (session.user.role !== "admin") return redirect("https://himarpl.com");
+  if (session.user.role !== "admin") return redirect("https://himarpl.org");
 
   return (
     <main className="container min-h-screen flex-1 p-8">
