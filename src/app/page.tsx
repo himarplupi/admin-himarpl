@@ -31,7 +31,7 @@ export default async function Home() {
   } = await api.user.getStatistic.query();
   const { percentageIn7Days, posts7Days, totalPostsIn7Days } =
     await api.post.getStatistic.query();
-    
+
   type Post7Days = Awaited<
     ReturnType<typeof api.post.getStatistic.query>
   >["posts7Days"][number];
@@ -61,7 +61,7 @@ export default async function Home() {
             <div className="text-2xl font-bold">
               {totalPostsIn7Days > 0
                 ? `+${totalPostsIn7Days}`
-                : totalPostsIn7Days}{" "}
+                : totalPostsIn7Days}
               Artikel
             </div>
             <p className="text-xs text-muted-foreground">
@@ -110,7 +110,7 @@ export default async function Home() {
             <p className="text-xs text-muted-foreground">
               {totalDiffUsersLastLogin > 0
                 ? `+${totalDiffUsersLastLogin}`
-                : totalDiffUsersLastLogin}{" "}
+                : totalDiffUsersLastLogin}
               satu jam terakhir
             </p>
           </CardContent>

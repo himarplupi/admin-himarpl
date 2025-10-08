@@ -9,6 +9,7 @@ import {
   Waypoints,
   Calendar,
   Award,
+  Newspaper,
 } from "lucide-react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -66,6 +67,7 @@ export function NavDesktop({
   const userQuery = api.user.count.useQuery();
   const periodQuery = api.period.count.useQuery();
   const positionQuery = api.position.count.useQuery();
+  const newsQuery = api.post.count.useQuery();
 
   return !hideOnRoutes.includes(pathname) ? (
     <TooltipProvider delayDuration={0}>
@@ -161,6 +163,13 @@ export function NavDesktop({
                     icon: Award,
                     href: "/positions",
                     variant: pathname === "/positions" ? "default" : "ghost",
+                  },
+                  {
+                    title: "Berita",
+                    label: newsQuery.data?.toString() ?? "",
+                    icon: Newspaper,
+                    href: "/posts",
+                    variant: pathname === "/posts" ? "default" : "ghost",
                   },
                 ]}
               />

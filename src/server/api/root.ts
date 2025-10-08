@@ -1,7 +1,7 @@
 import { accountRouter } from "./routers/account";
 import { departmentRouter } from "./routers/department";
 import { userRouter } from "./routers/user";
-import { postRouter } from "./routers/post";
+import { postRouter } from "./routers/news";
 import { positionRouter } from "./routers/position";
 import { periodRouter } from "./routers/period";
 import { createTRPCRouter } from "@/server/api/trpc";

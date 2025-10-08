@@ -1,0 +1,258 @@
+"use client";
+
+import * as React from "react";
+import { api } from "@/trpc/react";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronDown, XIcon, Trash, ArrowRight, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { columns } from "./columns";
+import { NewsCreateDialog } from "./news-create-dialog";
+import { NewsDeleteAlertDialog } from "./news-delete-alert";
+import type {
+  VisibilityState,
+  ColumnFiltersState,
+  RowSelectionState,
+  SortingState,
+  RowData,
+} from "@tanstack/table-core";
+import { type RouterOutputs } from "@/trpc/shared";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+
+type Post = RouterOutputs["post"]["all"][number];
+
+export function DataTableNews() {
+  const utils = api.useUtils();
+  const news = api.post.all.useQuery();
+
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [parent] = useAutoAnimate();
+
+  const getRowIdSelection = React.useCallback(() => {
+    if (!news.data) return [];
+    return news.data
+      .filter((item, index) => rowSelection[index])
+      .map((item) => item.id);
+  }, [news, rowSelection]);
+
+  const table = useReactTable({
+    columns,
+    data: news.data ?? [],
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+    meta: {
+      onUpdateRows: async () => {
+        await utils.post.invalidate();
+      },
+      onDeleteRows: async () => {
+        await utils.post.invalidate();
+        table.resetRowSelection();
+      },
+    },
+  });
+
+  return (
+    <div>
+      {/* If table row not selected show filter columns */}
+      {table.getFilteredSelectedRowModel().rows.length === 0 && (
+        <div className="flex items-center py-4">
+          <NewsCreateDialog
+            onCreate={async () => {
+              await utils.post.invalidate();
+            }}
+          />
+          <Input
+            placeholder="Filter news..."
+            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("title")?.setFilterValue(event.target.value)
+            }
+            className="ml-4 hidden max-w-sm sm:flex"
+          />
+
+          <div className="ml-auto flex gap-x-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="hidden sm:flex">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      )}
+
+      {/* If table row selected show controls */}
+      {table.getFilteredSelectedRowModel().rows.length > 0 && (
+        <div className="my-4 h-10 rounded-md border">
+          <Card className="h-full">
+            <CardContent className="flex h-full items-center gap-x-2 p-0 px-1 text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  table.resetRowSelection();
+                }}
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+              <div className="text-sm">
+                {table.getFilteredSelectedRowModel().rows.length} of{" "}
+                {table.getFilteredRowModel().rows.length} row(s) selected
+              </div>
+              <NewsDeleteAlertDialog
+                onDelete={table.options.meta?.onDeleteRows}
+                newsIds={getRowIdSelection()}
+              >
+                <Button variant="ghost" size="icon">
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </NewsDeleteAlertDialog>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <div className="w-[82vw] rounded-md border sm:w-[80vw] md:w-[85vw] lg:w-full">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody ref={parent}>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+
+            {table.getRowModel().rows.length < 1 && !news.isLoading && (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {news.isLoading && (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="space-y-4 text-center"
+                >
+                  <Skeleton className="h-16 w-full rounded-md " />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center py-4">
+        <div className="ml-auto flex gap-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

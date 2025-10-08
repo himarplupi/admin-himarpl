@@ -38,7 +38,7 @@ export const postTags = sqliteTable(
     }))
       .onUpdate("cascade")
       .onDelete("cascade"),
-  ]
+  ],
 );
 
 export const posts = sqliteTable(
@@ -57,17 +57,17 @@ export const posts = sqliteTable(
     content: text().notNull(),
     rawHtml: text().notNull(),
     image: text(),
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .default(sql`(CURRENT_TIMESTAMP)`)
-      .notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
-      .default(sql`(CURRENT_TIMESTAMP)`)
-      .notNull(),
-    publishedAt: numeric("published_at"),
+    createdAt: integer("created_at")
+      .notNull()
+      .default(sql`(strftime('%s','now'))`),
+    updatedAt: integer("updated_at")
+      .notNull()
+      .default(sql`(strftime('%s','now'))`),
+    publishedAt: integer("published_at"),
   },
   (table) => [
     uniqueIndex("posts_author_id_slug_key").on(table.authorId, table.slug),
-  ]
+  ],
 );
 
 export const programs = sqliteTable("programs", {
@@ -147,7 +147,7 @@ export const periods = sqliteTable(
   (table) => [
     uniqueIndex("periods_year_key").on(table.year),
     uniqueIndex("periods_name_key").on(table.name),
-  ]
+  ],
 );
 
 export const socialMedias = sqliteTable(
@@ -164,9 +164,9 @@ export const socialMedias = sqliteTable(
     uniqueIndex("social_medias_user_id_name_username_key").on(
       table.userId,
       table.name,
-      table.username
+      table.username,
     ),
-  ]
+  ],
 );
 
 export const users = sqliteTable(
@@ -194,7 +194,7 @@ export const users = sqliteTable(
   (table) => [
     uniqueIndex("users_username_key").on(table.username),
     uniqueIndex("users_email_key").on(table.email),
-  ]
+  ],
 );
 
 export const accounts = sqliteTable(
@@ -221,9 +221,9 @@ export const accounts = sqliteTable(
   (table) => [
     uniqueIndex("accounts_provider_provider_account_id_key").on(
       table.provider,
-      table.providerAccountId
+      table.providerAccountId,
     ),
-  ]
+  ],
 );
 
 export const sessions = sqliteTable(
@@ -239,7 +239,7 @@ export const sessions = sqliteTable(
       .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
     expires: numeric().notNull(),
   },
-  (table) => [uniqueIndex("sessions_sessionToken_key").on(table.sessionToken)]
+  (table) => [uniqueIndex("sessions_sessionToken_key").on(table.sessionToken)],
 );
 
 export const verificationTokens = sqliteTable(
@@ -252,10 +252,10 @@ export const verificationTokens = sqliteTable(
   (table) => [
     uniqueIndex("verification_tokens_identifier_token_key").on(
       table.identifier,
-      table.token
+      table.token,
     ),
     uniqueIndex("verification_tokens_token_key").on(table.token),
-  ]
+  ],
 );
 
 export const postToPostTag = sqliteTable(
@@ -274,7 +274,7 @@ export const postToPostTag = sqliteTable(
   (table) => [
     uniqueIndex("_PostToPostTag_AB_unique").on(table.postId, table.postTagId),
     index("post_id_idx").on(table.postId),
-  ]
+  ],
 );
 
 export const positionToUser = sqliteTable(
@@ -293,7 +293,7 @@ export const positionToUser = sqliteTable(
   (table) => [
     index("position_id_idx").on(table.positionId),
     uniqueIndex("_PositionToUser_AB_unique").on(table.positionId, table.userId),
-  ]
+  ],
 );
 
 export const departmentToUser = sqliteTable(
@@ -313,9 +313,9 @@ export const departmentToUser = sqliteTable(
     index("department_id_idx").on(table.departmentId),
     uniqueIndex("_DepartmentToUser_AB_unique").on(
       table.departmentId,
-      table.userId
+      table.userId,
     ),
-  ]
+  ],
 );
 
 export const periodToUser = sqliteTable(
@@ -334,5 +334,5 @@ export const periodToUser = sqliteTable(
   (table) => [
     index("period_id_idx").on(table.periodId),
     uniqueIndex("_PeriodToUser_AB_unique").on(table.periodId, table.userId),
-  ]
+  ],
 );
