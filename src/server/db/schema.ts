@@ -56,6 +56,7 @@ export const posts = sqliteTable(
     slug: text().notNull(),
     content: text().notNull(),
     rawHtml: text().notNull(),
+    link: text().notNull().default(""),
     image: text(),
     createdAt: integer("created_at")
       .notNull()

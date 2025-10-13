@@ -4,6 +4,7 @@ import { posts, postToPostTag } from "@/server/db/schema";
 import { users } from "@/server/db/schema";
 import { title } from "process";
 import z from "zod";
+import { link } from "fs";
 
 export type Post7Day = {
   publishedAt: Date | null;
@@ -68,6 +69,7 @@ export const postRouter = createTRPCRouter({
         authorId: users.id,
         authorName: users.name,
         metaTitle: posts.metaTitle,
+        link: posts.link,
         content: posts.content,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
@@ -84,6 +86,7 @@ export const postRouter = createTRPCRouter({
       slug: p.slug,
       metaTitle: p.metaTitle,
       content: p.content,
+      link: p.link,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
       publishedAt: p.publishedAt,
@@ -109,6 +112,7 @@ export const postRouter = createTRPCRouter({
         slug: z.string(),
         content: z.string(),
         postTagIds: z.array(z.string()).optional(),
+        link: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -124,6 +128,7 @@ export const postRouter = createTRPCRouter({
           slug: input.slug,
           content: input.content,
           rawHtml: input.content,
+          link: input.link,
           publishedAt: Math.floor(Date.now() / 1000),
         })
         .returning();
@@ -170,6 +175,7 @@ export const postRouter = createTRPCRouter({
         image: z.string(),
         metaTitle: z.string(),
         slug: z.string(),
+        link: z.string(),
         content: z.string(),
       }),
     )
@@ -183,7 +189,7 @@ export const postRouter = createTRPCRouter({
           slug: input.slug,
           content: input.content,
           rawHtml: input.content,
-
+          link: input.link,
           updatedAt: sql`(CURRENT_TIMESTAMP)`,
         })
         .where(eq(posts.id, input.id))

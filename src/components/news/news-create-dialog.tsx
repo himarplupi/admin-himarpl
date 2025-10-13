@@ -67,6 +67,7 @@ export function NewsCreateDialog({
       metaTitle: "",
       content: "",
       image: "",
+      link: "",
       rawHtml: "",
       publishedAt: null,
       createdAt: null,
@@ -85,6 +86,7 @@ export function NewsCreateDialog({
       image: values.image || "",
       content: values.content,
       postTagIds: ["cly42b4o80000e0epuhox87kq"],
+      link: values.link || "",
     });
     toast.promise(mutationPromise, {
       loading: "Membuat post...",
@@ -145,6 +147,19 @@ export function NewsCreateDialog({
                       <FormLabel>Meta Title</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Enter meta title" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="link"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Post Link</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter post link" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -18,6 +18,9 @@ export const newsFormSchema = z.object({
     .string()
     .min(10, { message: "Content must be at least 10 characters" }),
   rawHtml: z.string().optional(),
+  link: z
+    .string()
+    .min(4, { message: "Meta title must be at least 4 characters" }),
   publishedAt: z.date().optional().nullable(),
   createdAt: z.date().optional().nullable(),
   updatedAt: z.date().optional().nullable(),
