@@ -72,6 +72,7 @@ export function PostEditContent({
       metaTitle: post.metaTitle ?? "",
       content: post.content ?? "",
       rawHtml: post.content ?? "",
+      link: post.link ?? "",
       image: post.image ?? "",
     },
   });
@@ -82,6 +83,7 @@ export function PostEditContent({
       id: post.id,
       title: values.title,
       slug: values.slug,
+      link: values.link,
       metaTitle: values.metaTitle,
       image: values.image ?? "",
       content: values.content,
@@ -141,6 +143,19 @@ export function PostEditContent({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Meta Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="link"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Link</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
