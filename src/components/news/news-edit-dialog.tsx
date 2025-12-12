@@ -78,7 +78,6 @@ export function PostEditContent({
   });
 
   const onSubmit = async (values: NewsFormSchema) => {
-    setOpen(false);
     const mutationPromise = updateMutation.mutateAsync({
       id: post.id,
       title: values.title,
@@ -95,123 +94,126 @@ export function PostEditContent({
       error: "Gagal mengubah postingan",
       duration: 3000,
     });
-
-    await mutationPromise.then(() => onEdit());
+    try {
+      await mutationPromise;
+      onEdit();
+      setOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <DialogContent className="max-h-screen p-0 sm:max-w-[512px]">
-      <ReactLenis className="max-h-screen overflow-y-auto">
-        <div className="p-6">
-          <DialogHeader>
-            <DialogTitle>Edit Post</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} id="edit-post-form">
-              <div className="grid gap-4 py-6" ref={parent}>
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Judul</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      <div className="p-6">
+        <DialogHeader>
+          <DialogTitle>Edit Post</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} id="edit-post-form">
+            <div className="grid gap-4 py-6" ref={parent}>
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Judul</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="slug"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Slug</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="metaTitle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meta Title</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="link"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Link</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="metaTitle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meta Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="link"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="image"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL Gambar</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://..." />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL Gambar</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://..." />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Konten</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          className="min-h-[150px]"
-                          {...field}
-                          placeholder="Isi konten berita..."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </form>
-          </Form>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => setOpen(false)}
-            >
-              Batalkan
-            </Button>
-            <Button form="edit-post-form" type="submit">
-              Simpan perubahan
-            </Button>
-          </DialogFooter>
-        </div>
-      </ReactLenis>
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Konten</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[150px]"
+                        {...field}
+                        placeholder="Isi konten berita..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </form>
+        </Form>
+        <DialogFooter>
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => setOpen(false)}
+          >
+            Batalkan
+          </Button>
+          <Button form="edit-post-form" type="submit">
+            Simpan perubahan
+          </Button>
+        </DialogFooter>
+      </div>
     </DialogContent>
   );
 }

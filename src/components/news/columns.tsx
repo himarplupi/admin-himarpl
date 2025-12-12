@@ -5,6 +5,7 @@ import { ArrowUpDown, MoreVertical, Trash, Copy, Pencil } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,7 @@ import {
 } from "./news-edit-dialog";
 import { abbreviation } from "@/lib/utils";
 import type { Post } from "./news-types";
+import { useState } from "react";
 
 export const columns: ColumnDef<Post>[] = [
   {
@@ -146,10 +148,10 @@ export const columns: ColumnDef<Post>[] = [
     enableHiding: false,
     cell: ({ row, table }) => {
       const news = row.original;
-
+      const [isEditOpen, setIsEditOpen] = useState(false);
       return (
         <NewsDeleteAlertWrapper>
-          <PostEditWrapper>
+          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -167,25 +169,35 @@ export const columns: ColumnDef<Post>[] = [
                   Copy news ID
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <PostEditTrigger>
-                  <DropdownMenuItem className="gap-x-2">
+                <DialogTrigger>
+                  <DropdownMenuItem
+                    className="gap-x-2"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
                     <Pencil className="h-4 w-4" />
                     Edit News
                   </DropdownMenuItem>
-                </PostEditTrigger>
+                </DialogTrigger>
+                <PostEditContent
+                  post={news}
+                  onEdit={() => table.options.meta?.onUpdateRows()}
+                />
                 <NewsDeleteAlertTrigger>
-                  <DropdownMenuItem className="gap-x-2">
+                  <DropdownMenuItem
+                    className="gap-x-2"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
                     <Trash className="h-4 w-4" />
                     Delete News
                   </DropdownMenuItem>
                 </NewsDeleteAlertTrigger>
               </DropdownMenuContent>
             </DropdownMenu>
-            <PostEditContent
-              post={news}
-              onEdit={() => table.options.meta?.onUpdateRows()}
-            />
-          </PostEditWrapper>
+          </Dialog>
 
           <NewsDeleteAlertContent
             newsIds={[news.id]}
