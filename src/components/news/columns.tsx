@@ -21,8 +21,6 @@ import {
 } from "./news-delete-alert";
 import {
   PostEditContent,
-  PostEditTrigger,
-  PostEditWrapper,
 } from "./news-edit-dialog";
 import { abbreviation } from "@/lib/utils";
 import type { Post } from "./news-types";

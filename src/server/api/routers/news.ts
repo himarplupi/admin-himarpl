@@ -2,9 +2,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { sql, gte, eq, desc, inArray } from "drizzle-orm";
 import { posts, postToPostTag } from "@/server/db/schema";
 import { users } from "@/server/db/schema";
-import { title } from "process";
 import z from "zod";
-import { link } from "fs";
 
 export type Post7Day = {
   publishedAt: Date | null;
@@ -26,13 +24,13 @@ export const postRouter = createTRPCRouter({
   }),
   getStatistic: protectedProcedure.query(async ({ ctx }) => {
     const now = Date.now();
-    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-    const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = Math.floor((now - 7 * 24 * 60 * 60 * 1000) / 1000);
+    const fourteenDaysAgo = Math.floor((now - 14 * 24 * 60 * 60 * 1000) / 1000);
 
     const posts7Days = await ctx.db
       .select({ publishedAt: posts.publishedAt })
       .from(posts)
-      .where(gte(posts.publishedAt, sevenDaysAgo.toISOString()))
+      .where(gte(posts.publishedAt, sevenDaysAgo))
       .orderBy(sql`${posts.publishedAt} asc`);
 
     const posts7DaysBeforeResult = await ctx.db

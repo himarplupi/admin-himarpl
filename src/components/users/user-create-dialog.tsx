@@ -44,7 +44,7 @@ import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { type InferSelectModel } from "drizzle-orm";
-import { users } from "@/server/db/schema";
+import { type users } from "@/server/db/schema";
 import { type UserFormSchema, userFormSchema } from "./user-form-schema";
 
 type User = InferSelectModel<typeof users>;

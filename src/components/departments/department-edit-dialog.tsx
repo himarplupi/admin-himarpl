@@ -40,7 +40,7 @@ import type { Department } from "./department-type";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ReactLenis } from "lenis/react";
 import { type InferSelectModel } from "drizzle-orm";
-import { departments } from "@/server/db/schema";
+import { type departments } from "@/server/db/schema";
 import {
   type DepartmentFormSchema,
   departmentFormSchema,

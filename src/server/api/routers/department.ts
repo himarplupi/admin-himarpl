@@ -98,6 +98,7 @@ export const departmentRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const columns: any = { id: departments.id };
       if (input.name) columns.name = departments.name;
       if (input.acronym) columns.acronym = departments.acronym;

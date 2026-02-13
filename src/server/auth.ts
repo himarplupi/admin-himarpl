@@ -3,10 +3,8 @@ import {
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/server/db";
-import { api } from "@/trpc/server";
 import { env } from "@/env";
 import {
   users,

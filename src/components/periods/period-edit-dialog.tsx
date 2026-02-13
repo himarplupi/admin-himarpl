@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import type { Period } from "./period-type";
 import { ReactLenis } from "lenis/react";
 import { type InferSelectModel } from "drizzle-orm";
-import { periods } from "@/server/db/schema";
+import { type periods } from "@/server/db/schema";
 import { type PeriodFormSchema, periodFormSchema } from "./period-form-schema";
 
 type DefaultPeriod = InferSelectModel<typeof periods>;

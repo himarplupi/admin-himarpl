@@ -37,12 +37,8 @@ import type {
   ColumnFiltersState,
   RowSelectionState,
   SortingState,
-  RowData,
 } from "@tanstack/table-core";
-import { type RouterOutputs } from "@/trpc/shared";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-
-type Post = RouterOutputs["post"]["all"][number];
 
 export function DataTableNews() {
   const utils = api.useUtils();

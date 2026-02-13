@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { type NewsFormSchema, newsFormSchema } from "./news-form-schema";

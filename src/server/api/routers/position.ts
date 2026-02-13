@@ -57,6 +57,7 @@ export const positionRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const selectFields: Record<string, any> = { id: positions.id };
       if (input.name) selectFields.name = positions.name;
       if (input.createdAt) selectFields.createdAt = positions.createdAt;

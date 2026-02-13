@@ -22,29 +22,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ReactLenis } from "lenis/react";
 import { toast } from "sonner";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { type InferSelectModel } from "drizzle-orm";
-import { posts } from "@/server/db/schema";
+import { type posts } from "@/server/db/schema";
 import { type NewsFormSchema, newsFormSchema } from "./news-form-schema";
 import { Textarea } from "../ui/textarea";
 
@@ -77,7 +59,6 @@ export function NewsCreateDialog({
 
   const onSubmit = async (values: NewsFormSchema) => {
     setOpen(false);
-    const now = new Date();
 
     const mutationPromise = createMutation.mutateAsync({
       title: values.title,

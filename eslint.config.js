@@ -1,24 +1,26 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import tsParser from "@typescript-eslint/parser";
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
+import next from "eslint-config-next";
+import tseslint from "typescript-eslint";
 
 export default [
-  ...compat.extends(
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended-type-checked",
-    "plugin:@typescript-eslint/stylistic-type-checked"
-  ),
+  ...next,
+
+  // Non type-aware rules (safe for all files)
+  ...tseslint.configs.recommended,
+
+  // Type-aware rules ONLY for TS files
   {
     files: ["**/*.ts", "**/*.tsx"],
+    ...tseslint.configs.recommendedTypeChecked[0],
     languageOptions: {
-      parser: tsParser,
       parserOptions: {
         project: true,
       },
     },
+  },
+
+  // Custom rules
+  {
+    files: ["**/*.ts", "**/*.tsx"],
     rules: {
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
@@ -41,5 +43,10 @@ export default [
         },
       ],
     },
+  },
+
+  // Ignore config file itself
+  {
+    ignores: ["eslint.config.js"],
   },
 ];
