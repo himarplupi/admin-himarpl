@@ -35,12 +35,14 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import type { Position } from "./position-type";
 import { ReactLenis } from "lenis/react";
-import { type Position as DefaultPosition } from "@prisma/client";
+import type { InferSelectModel } from "drizzle-orm";
+import { type positions } from "@/server/db/schema";
 import {
   type PositionFormSchema,
   positionFormSchema,
 } from "./position-form-schema";
 
+type DefaultPosition = InferSelectModel<typeof positions>;
 const EditPositionContext = createContext<{
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
@@ -87,7 +89,7 @@ export function PositionEditContent({
     resolver: zodResolver(positionFormSchema),
     defaultValues: {
       name: position.name,
-      departmentId: position.departmentId ?? "",
+      departmentId: position.department?.id ?? "",
     },
   });
 
@@ -112,8 +114,8 @@ export function PositionEditContent({
         onEdit(data);
       }
       form.reset({
-        name: data.name,
-        departmentId: data.departmentId ?? "",
+        name: data?.name,
+        departmentId: data?.departmentId ?? "",
       });
     });
 
