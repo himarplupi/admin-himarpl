@@ -43,6 +43,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
+  debug: true,
   callbacks: {
     signIn: async ({ profile, account: authAccount }) => {
       const email = profile?.email;
@@ -50,7 +51,10 @@ export const authOptions: NextAuthOptions = {
       if (!authAccount) return "/login?errorMsg=Account is not detected";
       if (!email) return "/login?errorMsg=Email is not detected";
 
-      const user = await api.user.getByEmail.query(email);
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
 
       if (!user) {
         return `/login?errorMsg=Account with email ${email} is not registered`;
