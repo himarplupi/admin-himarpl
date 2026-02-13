@@ -1,23 +1,24 @@
-import tseslint from "@typescript-eslint/eslint-plugin";
+import { FlatCompat } from "@eslint/eslintrc";
 import tsParser from "@typescript-eslint/parser";
-/** @type {import("eslint").Linter.Config[]} */
+
+const compat = new FlatCompat({
+  baseDirectory: import.meta.dirname,
+});
+
 export default [
+  ...compat.extends(
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:@typescript-eslint/stylistic-type-checked"
+  ),
   {
-    files: ["**/.ts", "**/*.tsx"],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         project: true,
       },
     },
-    plugins: {
-      "@typescript-eslint": tseslint,
-    },
-    extends: [
-      "next/core-web-vitals",
-      "plugin:@typescript-eslint/recommended-type-checked",
-      "plugin:@typescript-eslint/stylistic-type-checked",
-    ],
     rules: {
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
