@@ -45,6 +45,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 type Department = RouterOutputs["department"]["all"][number];
 
 declare module "@tanstack/table-core" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableMeta<TData extends RowData> {
     onUpdateRows: () => Promise<void>;
     onDeleteRows: () => Promise<void>;

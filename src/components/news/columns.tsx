@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { ArrowUpDown, MoreVertical, Trash, Copy, Pencil } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +25,75 @@ import {
 import { abbreviation } from "@/lib/utils";
 import type { Post } from "./news-types";
 import { useState } from "react";
+
+function ActionsCell({
+  row,
+  table,
+}: {
+  row: Row<Post>;
+  table: Table<Post>;
+}) {
+  const news = row.original;
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  return (
+    <NewsDeleteAlertWrapper>
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+            <DropdownMenuItem
+              className="gap-x-2"
+              onClick={() => navigator.clipboard.writeText(news.id)}
+            >
+              <Copy className="h-4 w-4" />
+              Copy news ID
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DialogTrigger>
+              <DropdownMenuItem
+                className="gap-x-2"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <Pencil className="h-4 w-4" />
+                Edit News
+              </DropdownMenuItem>
+            </DialogTrigger>
+
+            <PostEditContent
+              post={news}
+              onEdit={() => table.options.meta?.onUpdateRows()}
+            />
+
+            <NewsDeleteAlertTrigger>
+              <DropdownMenuItem
+                className="gap-x-2"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <Trash className="h-4 w-4" />
+                Delete News
+              </DropdownMenuItem>
+            </NewsDeleteAlertTrigger>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Dialog>
+
+      <NewsDeleteAlertContent
+        newsIds={[news.id]}
+        onDelete={table.options.meta?.onDeleteRows}
+      />
+    </NewsDeleteAlertWrapper>
+  );
+}
 
 export const columns: ColumnDef<Post>[] = [
   {
@@ -144,65 +213,8 @@ export const columns: ColumnDef<Post>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row, table }) => {
-      const news = row.original;
-      const [isEditOpen, setIsEditOpen] = useState(false);
-      return (
-        <NewsDeleteAlertWrapper>
-          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  className="gap-x-2"
-                  onClick={() => navigator.clipboard.writeText(news.id)}
-                >
-                  <Copy className="h-4 w-4" />
-                  Copy news ID
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DialogTrigger>
-                  <DropdownMenuItem
-                    className="gap-x-2"
-                    onSelect={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Edit News
-                  </DropdownMenuItem>
-                </DialogTrigger>
-                <PostEditContent
-                  post={news}
-                  onEdit={() => table.options.meta?.onUpdateRows()}
-                />
-                <NewsDeleteAlertTrigger>
-                  <DropdownMenuItem
-                    className="gap-x-2"
-                    onSelect={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    <Trash className="h-4 w-4" />
-                    Delete News
-                  </DropdownMenuItem>
-                </NewsDeleteAlertTrigger>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Dialog>
-
-          <NewsDeleteAlertContent
-            newsIds={[news.id]}
-            onDelete={table.options.meta?.onDeleteRows}
-          />
-        </NewsDeleteAlertWrapper>
-      );
-    },
+    cell: ({ row, table }) => (
+      <ActionsCell row={row} table={table} />
+    ),
   },
 ];

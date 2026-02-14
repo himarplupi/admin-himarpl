@@ -93,6 +93,7 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     session: async ({ session, token }) => {
       const [user] = await db
         .select({

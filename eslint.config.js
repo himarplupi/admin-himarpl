@@ -22,6 +22,7 @@ export default [
   {
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
+      "react-hooks/incompatible-library": "off",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/consistent-type-imports": [

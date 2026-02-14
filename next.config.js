@@ -9,6 +9,9 @@ const config = {
   images: {
     remotePatterns: [{ hostname: "*", pathname: "**" }],
   },
+  experimental: {
+    reactCompiler: false,
+  },
 };
 
 export default config;

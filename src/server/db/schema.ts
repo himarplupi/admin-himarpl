@@ -8,7 +8,6 @@ import {
   index,
 } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
 import { createId } from "@paralleldrive/cuid2";
 
 export const postTags = sqliteTable(
