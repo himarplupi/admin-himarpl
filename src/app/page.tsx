@@ -62,7 +62,7 @@ export default async function Home() {
               {totalPostsIn7Days > 0
                 ? `+${totalPostsIn7Days}`
                 : totalPostsIn7Days}
-              Artikel
+              {` `}Artikel
             </div>
             <p className="text-xs text-muted-foreground">
               {percentageIn7Days > 0
@@ -111,7 +111,7 @@ export default async function Home() {
               {totalDiffUsersLastLogin > 0
                 ? `+${totalDiffUsersLastLogin}`
                 : totalDiffUsersLastLogin}
-              satu jam terakhir
+              {` `}satu jam terakhir
             </p>
           </CardContent>
         </Card>
